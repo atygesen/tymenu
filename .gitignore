@@ -133,3 +133,4 @@ poetry.lock
 
 # VSCode
 .vscode
+*.sqlite
