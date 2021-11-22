@@ -1,7 +1,9 @@
 from flask import render_template
+from tymenu.models import Recipe
 from . import main_blueprint as main
 
 
 @main.route("/")
 def index():
-    return render_template("index.html")
+    recipes = Recipe.query.order_by(Recipe.timestamp.desc()).all()
+    return render_template("index.html", recipes=recipes)

@@ -1,0 +1,26 @@
+{% if recipes %}
+<ul class="recipes">
+    {% for recipe in recipes %}
+    <li class="recipe">
+        <div class="recipe-date"> {{ moment(recipe.timestamp).fromNow() }}</div>
+        <div class="recipe-content">
+            <div class="recipe-title">
+                <h3>{{ recipe.title }}</h2>
+            </div>
+            <div class="recipe-author">
+                {{ recipe.author.username }}
+            </div>
+            <div class="recipe-body>">
+                <ul class="ingredients">
+                    {% for ingr in recipe.iter_ingredients(nmax=5) %}
+                    <li class="ingredient">
+                        {{ ingr }}
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </li>
+    {% endfor %}
+</ul>
+{% endif %}

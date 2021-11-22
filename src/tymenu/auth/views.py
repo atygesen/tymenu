@@ -3,7 +3,7 @@ from flask_login import login_user, logout_user, login_required
 
 # from flask_login import current_user
 from .blueprint import auth_blueprint as auth
-from tymenu.plugins import get_db
+from tymenu.resources import get_db
 from tymenu.models import User
 from .forms import (
     LoginForm,
