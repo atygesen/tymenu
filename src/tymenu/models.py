@@ -1,5 +1,7 @@
 from typing import Iterator
 from datetime import datetime
+import hashlib
+from flask import request
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
 import sqlalchemy as sql
@@ -88,6 +90,12 @@ class User(UserMixin, db.Model):
     role_id = db.Column(db.Integer, db.ForeignKey("roles.id"))
     password_hash = db.Column(db.String(128))
     recipes = db.relationship("Recipe", backref="author", lazy="dynamic")
+    avatar_hash = db.Column(db.String(32))
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        if self.email is not None and self.avatar_hash is None:
+            self.avatar_hash = self.gravatar_hash()
 
     @property
     def password(self):
@@ -102,6 +110,18 @@ class User(UserMixin, db.Model):
 
     def __repr__(self) -> str:
         return f"<User {self.username!r}>"
+
+    def gravatar_hash(self):
+        print("Generating gravatar")
+        return hashlib.md5(self.email.lower().encode("utf-8")).hexdigest()
+
+    def gravatar(self, size=100, default="identicon", rating="g"):
+        if request.is_secure:
+            url = "https://secure.gravatar.com/avatar"
+        else:
+            url = "http://www.gravatar.com/avatar"
+        hash = self.avatar_hash or self.gravatar_hash()
+        return f"{url}/{hash}?s={size}&d={default}&r={rating}"
 
 
 @login_manager.user_loader
