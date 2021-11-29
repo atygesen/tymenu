@@ -1,7 +1,7 @@
 import os
 from flask_migrate import Migrate
 from tymenu.factory import create_app
-from tymenu.plugins import get_db
+from tymenu.resources import get_db
 
 db = get_db()
 

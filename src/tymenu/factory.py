@@ -3,7 +3,7 @@
 from flask import Flask
 
 from .config import get_config
-from .plugins import init_plugins
+from .resources import init_plugins
 
 
 def create_app(config_name: str) -> Flask:
@@ -19,8 +19,10 @@ def create_app(config_name: str) -> Flask:
     # Blueprints
     from .main import main_blueprint
     from .auth import auth_blueprint
+    from .menu import menu_blueprint
 
     app.register_blueprint(main_blueprint)
     app.register_blueprint(auth_blueprint)
+    app.register_blueprint(menu_blueprint)
 
     return app

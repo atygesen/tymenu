@@ -7,6 +7,10 @@
     <h1>Hello, {% if current_user.is_authenticated %}{{ current_user.username }}{% else %}Stranger{% endif %}!</h1>
 </div>
 {% if not current_user.is_authenticated %}
-    Please login to continue.
+<p>Please <a href="{{ url_for('auth.login') }}">login</a> to continue,
+    or <a href="{{ url_for('auth.register') }}">register</a> a new account.</p>
 {% endif %}
+
+{% include '_recipes.html' %}
+
 {% endblock %}
