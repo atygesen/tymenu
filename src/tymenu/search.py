@@ -26,7 +26,7 @@ def get_operation_by_string(op_str: str):
 
 
 def query_substrings(column, *substrings: str, exclude: bool = False):
-    """Helper function to query a substring"""
+    """Helper function to query a substring."""
 
     def _query_maker(substring):
         my_query = column.contains(substring)
@@ -34,5 +34,5 @@ def query_substrings(column, *substrings: str, exclude: bool = False):
             my_query = sql.not_(my_query)
         return my_query
 
-    queries = (_query_maker(substring) for substring in substrings)
+    queries = [_query_maker(substring) for substring in substrings]
     return queries

@@ -25,6 +25,8 @@ def new_recipe():
         except IntegrityError as exc:
             db.session.rollback()
             flash(f"An error occurred while creating the recipe: {exc}")
+        else:
+            flash(f"New recipe '{recipe.title}' has been added.")
         return redirect(url_for(".new_recipe"))
     return render_template("menu/new_recipe.html", form=form)
 

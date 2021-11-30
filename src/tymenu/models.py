@@ -15,14 +15,14 @@ login_manager = get_login_manager()
 
 class Recipe(db.Model):
     __tablename__ = "recipe"
-    id = db.Column(db.Integer, primary_key=True)
-    author_id = db.Column(db.Integer, db.ForeignKey("users.id"), index=True)
+    id: int = db.Column(db.Integer, primary_key=True)
+    author_id: int = db.Column(db.Integer, db.ForeignKey("users.id"), index=True)
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
-    title = db.Column(db.String(64), unique=True)
-    ingredients = db.Column(db.Text)
-    instructions = db.Column(db.Text)
-    keywords = db.Column(db.Text)
-    source = db.Column(db.String(64))
+    title: str = db.Column(db.String(64), unique=True)
+    ingredients: str = db.Column(db.Text)
+    instructions: str = db.Column(db.Text)
+    keywords: str = db.Column(db.Text)
+    source: str = db.Column(db.String(64))
 
     def __repr__(self) -> str:
         return f"<Recipe {self.title!r} by {self.author!r}>"
@@ -42,15 +42,16 @@ class Recipe(db.Model):
         return cls.query.filter(op(*queries))
 
     @classmethod
-    def build_query(cls, title=None, ingredients=None, keywords=None):
+    def build_query(cls, title=None, ingredients=None, keywords=None, order_by_time=True):
         query = cls.query
         if title:
-            query = query.filter_by(title=title)
+            query = query.filter(sql.and_(*query_substrings(cls.title, title)))
         if ingredients:
             query = query.filter(sql.and_(*query_substrings(cls.ingredients, *ingredients)))
         if keywords:
             query = query.filter(sql.and_(*query_substrings(cls.keywords, *keywords)))
-        query = query.order_by(cls.timestamp.desc())
+        if order_by_time:
+            query = query.order_by(cls.timestamp.desc())
         return query
 
     def iter_ingredients(self, nmax=None) -> Iterator[str]:
