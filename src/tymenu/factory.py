@@ -2,6 +2,7 @@
 
 from flask import Flask
 
+
 from .config import get_config
 from .resources import init_plugins
 

@@ -4,9 +4,17 @@
 {% block title %}TyMenu - New Recipe{% endblock %}
 
 {% block page_content %}
-<h1>Create a new recipe</h1>
+<div class="page-header">
+    <h1>Create a new recipe</h1>
+</div>
+
 <div>
     {{ wtf.quick_form(form) }}
 </div>
 
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+{{ pagedown.include_pagedown() }}
 {% endblock %}

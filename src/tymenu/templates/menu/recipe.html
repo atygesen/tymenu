@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}TyMenu - {{recipe.title}}{% endblock %}
+
+
+{% block page_content %}
+<div class="page-header">
+    <h1> {{recipe.title}} </h1>
+
+    <body>
+        <i>By:</i> {{recipe.author.username}}
+        <br><i>Added:</i> {{ moment(recipe.timestamp).format("LLL") }}
+    </body>
+</div>
+
+<div class="menu-ingredients-list">
+    <h3>Ingredients</h3>
+    <div class="recipe-body>">
+        <!-- HTML rendered by server, and thus safe -->
+        {{ recipe.ingredients_html | safe }}
+    </div>
+</div>
+
+<div class="menu-instructions">
+    <h3>Instructions</h3>
+    <!-- HTML rendered by server, and thus safe -->
+    {{ recipe.instructions_html | safe }}
+</div>
+
+<div class="menu-additional">
+    <!-- Add any additional info -->
+    <h3>Additional</h3>
+
+    <!-- Are keywords available? -->
+    {% if recipe.keywords %}
+    <div class="menu-keywords">
+        <i>Keyword(s):</i> {{ recipe.keywords }}
+    </div>
+    {% endif %}
+
+    <!-- Did we have a source? -->
+    {% if recipe.source %}
+    <div class="menu-source">
+        <i>Source:</i>
+        {% if 'http' in recipe.source%}
+        <a href="{{recipe.source}}" target="_blank" rel="noopener noreferrer">{{recipe.source}}</a>
+        {% elif 'www' in recipe.source %}
+        <!-- We have www but not the http(s) -->
+        <a href="http://{{recipe.source}}" target="_blank" rel="noopener noreferrer">{{recipe.source}}</a>
+        {% else %}
+        {{ recipe.source }}
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+
+<div class="recipe-footer">
+    <a href="{{url_for('.edit_recipe', recipe_id=recipe.id) }}">
+        <span class="label label-primary">Edit</span>
+    </a>
+    {% if recipe.last_updated %}
+        <br><small><i>Last updated: {{ moment(recipe.last_updated).format("LLL") }}</i></small>
+    {% endif %}
+</div>
+
+{% endblock %}

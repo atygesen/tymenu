@@ -2,7 +2,11 @@
 <ul class="recipes">
     {% for recipe in recipes %}
     <div class="recipe-title">
-        <h3>{{ recipe.title }}</h2>
+        <h4>
+            <a class="menu-redirect" href="{{ url_for('menu.view_recipe', recipe_id=recipe.id) }}">
+                {{ recipe.title }}
+            </a>
+        </h4>
     </div>
     <li class="recipe">
         <div class="recipe-thumbnail">
