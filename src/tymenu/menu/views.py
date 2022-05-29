@@ -1,23 +1,19 @@
-from flask import redirect, url_for, render_template, flash
-from flask_login import current_user
+from flask import redirect, url_for, render_template, flash, request, current_app
+from flask_login.utils import login_required
 from sqlalchemy.exc import IntegrityError
 from tymenu.models import Recipe
 from tymenu.resources import get_db
 from .blueprint import menu_blueprint as menu
-from .forms import PostRecipe, SearchRecipes
+from .forms import RecipeForm, SimpleSearch
 
 
 @menu.route("/new_recipe", methods=["GET", "POST"])
+@login_required
 def new_recipe():
-    form = PostRecipe()
+    form = RecipeForm()
 
     if form.validate_on_submit():
-        recipe = Recipe(
-            title=form.title.data,
-            ingredients=form.ingredients.data,
-            keywords=form.keywords.data,
-            author=current_user._get_current_object(),
-        )
+        recipe = form.construct_new_recipe()
         db = get_db()
         try:
             db.session.add(recipe)
@@ -44,11 +40,63 @@ def _parse_search_form(form):
 
 @menu.route("/search", methods=["GET", "POST"])
 def search():
-    form = SearchRecipes()
+    form = SimpleSearch()
     if form.validate_on_submit():
-        query = _parse_search_form(form)
-        results = query.all()
-        if len(results) == 0:
-            flash("No results found.")
-        return render_template("menu/search.html", form=form, recipes=results)
+        q = form.search_string.data
+        return redirect(url_for(".search_results", q=q))
     return render_template("menu/search.html", form=form)
+
+
+@menu.route("/search_results")
+def search_results():
+    """Return the results of the seach query"""
+    page = request.args.get("page", 1, type=int)
+    search_string = request.args.get("q", None)
+
+    recipes = []
+    pagination = None
+    results_total = 0
+    if search_string is not None:
+        query = Recipe.search_string(search_string).order_by(Recipe.timestamp.desc())
+        pagination = query.paginate(
+            page,
+            per_page=current_app.config["TYMENU_RECIPES_PER_PAGE"],
+            error_out=False,
+        )
+        recipes = pagination.items
+        results_total = query.count()
+    return render_template(
+        "menu/search_results.html",
+        q=search_string,
+        recipes=recipes,
+        pagination=pagination,
+        results_total=results_total,
+    )
+
+
+@menu.route("/recipe/<int:recipe_id>", methods=["GET"])
+def view_recipe(recipe_id):
+    recipe = Recipe.query.get_or_404(recipe_id)
+    return render_template("menu/recipe.html", recipe=recipe)
+
+
+@menu.route("/edit/<int:recipe_id>", methods=["GET", "POST"])
+@login_required
+def edit_recipe(recipe_id):
+    recipe = Recipe.query.get_or_404(recipe_id)
+    # Allow any user to edit?
+    form = RecipeForm(edit_id=recipe_id)
+    if form.validate_on_submit():
+        form.update_recipe(recipe)
+        db = get_db()
+        try:
+            db.session.add(recipe)
+            db.session.commit()
+        except IntegrityError as exc:
+            db.session.rollback()
+            flash(f"An error occurred while updating recipe: {exc}")
+        else:
+            flash(f"Recipe '{recipe.title}' has been updated.")
+        return redirect(url_for(".view_recipe", recipe_id=recipe_id))
+    form.fill_from_existing_recipe(recipe)
+    return render_template("menu/edit_recipe.html", form=form)

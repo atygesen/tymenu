@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% import "_macros.html" as macros %}
+
+{% block title %}TyMenu - Profile{% endblock %}
+
+{% block page_content %}
+
+<div class="page-header">
+    <img class="img-rounded profile-thumbnail" src="{{ user.gravatar(size=150) }}">
+    <div class="profile-header">
+        <h1>{{ user.username }}</h1>
+    </div>
+    {% if current_user.is_administrator() %}
+        <p><a href="mailto:{{ user.email }}">{{ user.email }}</a></p>
+    {% endif %}
+</div>
+<p>Member since {{ moment(user.member_since).format('LLL') }}.</p>
+<p>Number of recipes: {{ user.recipes.count() }}</p>
+
+<div class="pagination">
+    {{ macros.pagination_widget(pagination, '.profile', id=user.id) }}
+</div>
+{% include '_recipes.html' %}
+<div class="pagination">
+    {{ macros.pagination_widget(pagination, '.profile', id=user.id) }}
+</div>
+
+
+
+{% endblock %}

@@ -4,6 +4,8 @@ from flask_bootstrap import Bootstrap
 from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
+from flask_pagedown import PageDown
+from flask_mail import Mail
 
 __all__ = ["get_db", "get_login_manager", "get_plugins", "init_plugins"]
 
@@ -12,6 +14,8 @@ _RESOURCES = {
     "moment": Moment(),
     "db": SQLAlchemy(),
     "login_manager": LoginManager(),
+    "pagedown": PageDown(),
+    "mail": Mail(),
 }
 _RESOURCES["login_manager"].login_view = "auth.login"
 
@@ -22,6 +26,10 @@ def get_db() -> SQLAlchemy:
 
 def get_login_manager() -> LoginManager:
     return _RESOURCES["login_manager"]
+
+
+def get_mail() -> Mail:
+    return _RESOURCES["mail"]
 
 
 def get_plugins() -> Dict[str, Any]:

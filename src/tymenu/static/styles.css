@@ -1,9 +1,10 @@
 .profile-thumbnail {
     position: absolute;
+    float: left;
 }
 .profile-header {
-    min-height: 260px;
-    margin-left: 280px;
+    min-height: 160px;
+    margin-left: 170px;
 }
 ul.recipe {
     list-style-type: none;
@@ -33,4 +34,7 @@ div.recipe-thumbnail {
 div.recipe-content {
     margin-left: 48px;
     min-height: 48px;
+}
+div.recipe-footer {
+    text-align: right;
 }

@@ -75,3 +75,10 @@ def test_search_ingredients(meatballs, spaghetti):
     assert len(result) == 1
     assert meatballs not in result
     assert result[0] == spaghetti
+
+
+def test_get_recipe(meatballs):
+    result = Recipe.query.filter_by(id=1).first()
+    print(result)
+    result = Recipe.query.filter_by(id=2).first()
+    print(result)

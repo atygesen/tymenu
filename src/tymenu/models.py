@@ -1,31 +1,110 @@
+from __future__ import annotations
 from typing import Iterator
-from datetime import datetime
+import datetime
 import hashlib
-from flask import request
+import jwt
+from flask import request, current_app
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_login import UserMixin
+from flask_login import UserMixin, AnonymousUserMixin
 import sqlalchemy as sql
+from markdown import markdown
+import bleach
 
 from .search import query_substrings, get_operation
 from .resources import get_db, get_login_manager
 
+
+class Permission:
+    FOLLOW = 1
+    COMMENT = 2
+    WRITE = 4
+    MODERATE = 8
+    ADMIN = 16
+
+
 db = get_db()
 login_manager = get_login_manager()
+
+
+def get_secret_key() -> str:
+    return current_app.config["SECRET_KEY"]
+
+
+def encode(data: dict, expiration=3600):
+    # expiration is a special name
+    # https://pyjwt.readthedocs.io/en/latest/usage.html#registered-claim-names
+    data["exp"] = datetime.datetime.now(tz=datetime.timezone.utc) + datetime.timedelta(
+        seconds=expiration
+    )
+    return jwt.encode(data, get_secret_key(), algorithm="HS256")
+
+
+def decode(token, leeway: int = 10):
+    return jwt.decode(
+        token,
+        get_secret_key(),
+        leeway=datetime.timedelta(seconds=leeway),
+        algorithms=["HS256"],
+    )
+
+
+def clean_markdown_to_html(value: str) -> str:
+    allowed_tags = [
+        "a",
+        "abbr",
+        "acronym",
+        "b",
+        "blockquote",
+        "code",
+        "em",
+        "i",
+        "li",
+        "ol",
+        "pre",
+        "strong",
+        "ul",
+        "h1",
+        "h2",
+        "h3",
+        "p",
+    ]
+    return bleach.linkify(
+        bleach.clean(
+            markdown(value, output_format="html"),
+            tags=allowed_tags,
+            strip=True,
+        )
+    )
 
 
 class Recipe(db.Model):
     __tablename__ = "recipe"
     id: int = db.Column(db.Integer, primary_key=True)
     author_id: int = db.Column(db.Integer, db.ForeignKey("users.id"), index=True)
-    timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+    timestamp = db.Column(db.DateTime, index=True, default=datetime.datetime.utcnow)
+    last_updated = db.Column(db.DateTime)
     title: str = db.Column(db.String(64), unique=True)
     ingredients: str = db.Column(db.Text)
     instructions: str = db.Column(db.Text)
     keywords: str = db.Column(db.Text)
     source: str = db.Column(db.String(64))
+    # Special columns with sanitized HTML from Markdown
+    ingredients_html: str = db.Column(db.Text)
+    instructions_html: str = db.Column(db.Text)
 
     def __repr__(self) -> str:
         return f"<Recipe {self.title!r} by {self.author!r}>"
+
+    @classmethod
+    def search_string(cls, string: str):
+        """Search in relevant fields for a string"""
+
+        contains = (
+            getattr(cls, name).contains(string)
+            for name in ("title", "ingredients", "keywords", "instructions")
+        )
+
+        return cls.query.filter(sql.or_(*contains))
 
     @classmethod
     def search_ingredients(cls, *ingredients, operation="and", exclude: bool = False):
@@ -61,7 +140,7 @@ class Recipe(db.Model):
         A final "..." is returned if the ingredients list is truncated."""
         counter = 0
         # Split ingredients on newlines
-        for ingredient in self.ingredients.split():
+        for ingredient in self.ingredients.split("\n"):
             s = ingredient.strip()
             if s:
                 counter += 1  # Only iterate if it's a non-empty line
@@ -72,15 +151,90 @@ class Recipe(db.Model):
                 yield "..."
                 break
 
+    @staticmethod
+    def on_changed_instructions(target, value, oldvalue, initiator):
+        target.instructions_html = clean_markdown_to_html(value)
+
+    @staticmethod
+    def on_changed_ingredients(target, value, oldvalue, initiator):
+        target.ingredients_html = clean_markdown_to_html(value)
+
+
+# Listen to set the markdown -> HTML conversion
+db.event.listen(Recipe.ingredients, "set", Recipe.on_changed_ingredients)
+db.event.listen(Recipe.instructions, "set", Recipe.on_changed_instructions)
+
 
 class Role(db.Model):
     __tablename__ = "roles"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), unique=True)
+    default = db.Column(db.Boolean, default=False, index=True)
+    permissions = db.Column(db.Integer)
     users = db.relationship("User", backref="role", lazy="dynamic")
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        if self.permissions is None:
+            self.permissions = 0
+
+    @staticmethod
+    def insert_roles():
+        roles = {
+            "User": [Permission.FOLLOW, Permission.COMMENT, Permission.WRITE],
+            "Moderator": [
+                Permission.FOLLOW,
+                Permission.COMMENT,
+                Permission.WRITE,
+                Permission.MODERATE,
+            ],
+            "Administrator": [
+                Permission.FOLLOW,
+                Permission.COMMENT,
+                Permission.WRITE,
+                Permission.MODERATE,
+                Permission.ADMIN,
+            ],
+        }
+        default_role = "User"
+        for r in roles:
+            role = Role.query.filter_by(name=r).first()
+            if role is None:
+                role = Role(name=r)
+            role.reset_permissions()
+            for perm in roles[r]:
+                role.add_permission(perm)
+            role.default = role.name == default_role
+            db.session.add(role)
+        db.session.commit()
+
+    def add_permission(self, perm):
+        if not self.has_permission(perm):
+            self.permissions += perm
+
+    def remove_permission(self, perm):
+        if self.has_permission(perm):
+            self.permissions -= perm
+
+    def reset_permissions(self):
+        self.permissions = 0
+
+    def has_permission(self, perm):
+        return self.permissions & perm == perm
 
     def __repr__(self) -> str:
         return f"<Role {self.name!r}>"
+
+
+class AnonymousUser(AnonymousUserMixin):
+    def can(self, permissions):
+        return False
+
+    def is_administrator(self):
+        return False
+
+
+login_manager.anonymous_user = AnonymousUser
 
 
 class User(UserMixin, db.Model):
@@ -92,11 +246,18 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(128))
     recipes = db.relationship("Recipe", backref="author", lazy="dynamic")
     avatar_hash = db.Column(db.String(32))
+    member_since = db.Column(db.DateTime(), default=datetime.datetime.utcnow)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         if self.email is not None and self.avatar_hash is None:
             self.avatar_hash = self.gravatar_hash()
+
+        if self.role is None:
+            if self.email == current_app.config["TYMENU_ADMIN"]:
+                self.role = Role.query.filter_by(name="Administrator").first()
+            if self.role is None:
+                self.role = Role.query.filter_by(default=True).first()
 
     @property
     def password(self):
@@ -113,7 +274,6 @@ class User(UserMixin, db.Model):
         return f"<User {self.username!r}>"
 
     def gravatar_hash(self):
-        print("Generating gravatar")
         return hashlib.md5(self.email.lower().encode("utf-8")).hexdigest()
 
     def gravatar(self, size=100, default="identicon", rating="g"):
@@ -123,6 +283,42 @@ class User(UserMixin, db.Model):
             url = "http://www.gravatar.com/avatar"
         hash = self.avatar_hash or self.gravatar_hash()
         return f"{url}/{hash}?s={size}&d={default}&r={rating}"
+
+    def generate_confirmation_token(self, expiration=3600):
+        return encode({"confirm": self.id}, expiration=expiration)
+
+    def generate_reset_token(self, expiration=3600):
+        return encode({"reset": self.id}, expiration=expiration)
+
+    def confirm(self, token):
+        try:
+            data = decode(token)
+        except Exception:
+            return False
+        if data.get("confirm") != self.id:
+            return False
+        self.confirmed = True
+        db.session.add(self)
+        return True
+
+    @staticmethod
+    def reset_password(token, new_password):
+        try:
+            data = decode(token)
+        except Exception:
+            return False
+        user = User.query.get(data.get("reset"))
+        if user is None:
+            return False
+        user.password = new_password
+        db.session.add(user)
+        return True
+
+    def can(self, perm):
+        return self.role is not None and self.role.has_permission(perm)
+
+    def is_administrator(self):
+        return self.can(Permission.ADMIN)
 
 
 @login_manager.user_loader

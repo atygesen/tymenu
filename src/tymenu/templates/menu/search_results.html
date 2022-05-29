@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% import "_macros.html" as macros %}
+
+
+{% block title %}TyMenu - Seach Results{% endblock %}
+
+{% block page_content %}
+<div class="page-header">
+    <h1>Search Results</h1>
+</div>
+
+<p>
+<i>Seach query:</i> {{ q }}
+<br><i>Total number of results:</i> {{ results_total }}
+<br><a href="{{ url_for('.search') }}">New Search</a>
+</p>
+
+{% if recipes %}
+<div class="pagination">
+    {{ macros.pagination_widget(pagination, '.search_results', q=q) }}
+</div>
+{% include "_recipes.html" %}
+<div class="pagination">
+    {{ macros.pagination_widget(pagination, '.search_results', q=q) }}
+</div>
+{% endif %}
+
+{% endblock %}
