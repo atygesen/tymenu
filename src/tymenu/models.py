@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Iterator, List, Dict
+from typing import List, Dict
 import datetime
 import hashlib
 import jwt
@@ -135,23 +135,14 @@ class Recipe(db.Model):
             query = query.order_by(cls.timestamp.desc())
         return query
 
-    def iter_ingredients(self, nmax=None) -> Iterator[str]:
-        """Helper function to iterate the ingredients list.
-
-        Can optionally provide a maximum number of ingredients.
-        A final "..." is returned if the ingredients list is truncated."""
-        counter = 0
-        # Split ingredients on newlines
-        for ingredient in self.ingredients.split("\n"):
-            s = ingredient.strip()
-            if s:
-                counter += 1  # Only iterate if it's a non-empty line
-                yield s
-            if nmax is not None and counter == (nmax - 1):
-                # Maximum count reached
-                # Yield one more "..." and break out
-                yield "..."
+    def short_ingredients_list(self, nmax=5):
+        ingr = []
+        for ii, line in enumerate(self.ingredients.split("\n")):
+            if ii == nmax:
+                ingr.append("\n...")
                 break
+            ingr.append(line)
+        return clean_markdown_to_html("\n".join(ingr))
 
     @staticmethod
     def on_changed_instructions(target, value, oldvalue, initiator):

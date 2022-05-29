@@ -21,13 +21,7 @@
                 {% if recipe.kcal %}
                     <p>{{ recipe.kcal }} kcal</p>
                 {% endif %}
-                <ul class="ingredients">
-                    {% for ingr in recipe.iter_ingredients(nmax=recipes_list_max or None) %}
-                    <li class="ingredient">
-                        {{ ingr }}
-                    </li>
-                    {% endfor %}
-                </ul>
+                {{ recipe.short_ingredients_list(nmax=recipes_list_max) | safe }}
             </div>
         </div>
     </li>
