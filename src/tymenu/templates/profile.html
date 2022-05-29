@@ -9,14 +9,14 @@
     <img class="img-rounded profile-thumbnail" src="{{ user.gravatar(size=150) }}">
     <div class="profile-header">
         <h1>{{ user.username }}</h1>
-        Role: {{ user.role }}
+        Role: {{ user.role }}<br>
+        Member since: {{ moment(user.member_since).format('LLL') }}<br>
+        Number of recipes: {{ user.recipes.count() }}
     </div>
     {% if current_user.is_administrator() %}
         <p><a href="mailto:{{ user.email }}">{{ user.email }}</a></p>
     {% endif %}
 </div>
-<p>Member since {{ moment(user.member_since).format('LLL') }}.</p>
-<p>Number of recipes: {{ user.recipes.count() }}</p>
 
 <div class="pagination">
     {{ macros.pagination_widget(pagination, '.profile', id=user.id) }}

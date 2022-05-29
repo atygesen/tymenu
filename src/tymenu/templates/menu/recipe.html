@@ -8,7 +8,7 @@
     <h1> {{recipe.title}} </h1>
 
     <body>
-        <i>By:</i> {{recipe.author.username}}
+        <i>By:</i> <a href="{{ url_for('main.profile', id=recipe.author.id) }}">{{ recipe.author.username }}</a>
         <br><i>Added:</i> {{ moment(recipe.timestamp).format("LLL") }}
     </body>
 </div>

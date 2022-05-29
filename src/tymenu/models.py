@@ -313,7 +313,9 @@ class User(UserMixin, db.Model):
         return True
 
     @staticmethod
-    def reset_password(token, new_password):
+    def reset_password(token, new_password) -> bool:
+        """Reset the password. Returns a boolean indicating if
+        the password has been changed."""
         try:
             data = decode(token)
         except Exception:
@@ -325,10 +327,10 @@ class User(UserMixin, db.Model):
         db.session.add(user)
         return True
 
-    def can(self, perm):
+    def can(self, perm) -> bool:
         return self.role is not None and self.role.has_permission(perm)
 
-    def is_administrator(self):
+    def is_administrator(self) -> bool:
         return self.can(Permission.ADMIN)
 
     def set_role(self, role_name: str) -> None:
@@ -337,6 +339,7 @@ class User(UserMixin, db.Model):
 
         >>> usr = User.query.filter_by(id=1).first()  # Select a user
         >>> usr.set_role("administrator")
+        >>> usr.set_role("user")
 
         """
         all_roles = Role.all_roles()
