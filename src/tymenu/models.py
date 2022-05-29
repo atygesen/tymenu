@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Iterator
+from typing import Iterator, List, Dict
 import datetime
 import hashlib
 import jwt
@@ -179,8 +179,8 @@ class Role(db.Model):
             self.permissions = 0
 
     @staticmethod
-    def insert_roles():
-        roles = {
+    def all_role_permissions() -> Dict[str, List[Permission]]:
+        return {
             "User": [Permission.FOLLOW, Permission.COMMENT, Permission.WRITE],
             "Moderator": [
                 Permission.FOLLOW,
@@ -196,7 +196,15 @@ class Role(db.Model):
                 Permission.ADMIN,
             ],
         }
+
+    @classmethod
+    def all_roles(cls):
+        return cls.query.all()
+
+    @staticmethod
+    def insert_roles():
         default_role = "User"
+        roles = Role.all_role_permissions()
         for r in roles:
             role = Role.query.filter_by(name=r).first()
             if role is None:
@@ -224,6 +232,9 @@ class Role(db.Model):
 
     def __repr__(self) -> str:
         return f"<Role {self.name!r}>"
+
+    def __str__(self) -> str:
+        return self.name
 
 
 class AnonymousUser(AnonymousUserMixin):
@@ -319,6 +330,25 @@ class User(UserMixin, db.Model):
 
     def is_administrator(self):
         return self.can(Permission.ADMIN)
+
+    def set_role(self, role_name: str) -> None:
+        """Change the role of a user using a string.
+        Example:
+
+        >>> usr = User.query.filter_by(id=1).first()  # Select a user
+        >>> usr.set_role("administrator")
+
+        """
+        all_roles = Role.all_roles()
+        # Always compare lower, for convenience.
+        role_name = role_name.lower()
+        for role in all_roles:
+            # Find a role corresponding to the requested role name.
+            if role.name.lower() == role_name:
+                self.role = role
+                db.session.commit()
+                return
+        raise RuntimeError(f"Unknown role: {role_name}. Available roles: {all_roles!r}")
 
 
 @login_manager.user_loader

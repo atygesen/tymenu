@@ -9,6 +9,7 @@
     <img class="img-rounded profile-thumbnail" src="{{ user.gravatar(size=150) }}">
     <div class="profile-header">
         <h1>{{ user.username }}</h1>
+        Role: {{ user.role }}
     </div>
     {% if current_user.is_administrator() %}
         <p><a href="mailto:{{ user.email }}">{{ user.email }}</a></p>
