@@ -13,6 +13,15 @@
     </body>
 </div>
 
+<div>
+    <h3> Serving</h3>
+    Number of servings: {{ recipe.servings }} <br>
+    {% if recipe.kcal %}
+        Calories: {{ recipe.kcal }} kcal<br>
+        Per Serving: {{ '%0.2f'|format(recipe.kcal / recipe.servings|float) }}
+    {% endif %}
+</div>
+
 <div class="menu-ingredients-list">
     <h3>Ingredients</h3>
     <div class="recipe-body>">

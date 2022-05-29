@@ -88,6 +88,8 @@ class Recipe(db.Model):
     instructions: str = db.Column(db.Text)
     keywords: str = db.Column(db.Text)
     source: str = db.Column(db.String(64))
+    servings: int = db.Column(db.Integer)
+    kcal: float = db.Column(db.Float, nullable=True)
     # Special columns with sanitized HTML from Markdown
     ingredients_html: str = db.Column(db.Text)
     instructions_html: str = db.Column(db.Text)

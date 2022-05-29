@@ -86,6 +86,9 @@ def edit_recipe(recipe_id):
     recipe = Recipe.query.get_or_404(recipe_id)
     # Allow any user to edit?
     form = RecipeForm(edit_id=recipe_id)
+    if request.method == "POST":
+        if form.cancel.data:
+            return redirect(url_for("menu.view_recipe", recipe_id=recipe_id))
     if form.validate_on_submit():
         form.update_recipe(recipe)
         db = get_db()

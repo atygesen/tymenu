@@ -1,8 +1,8 @@
 from typing import Dict, Any
 from datetime import datetime
 from flask_wtf import FlaskForm
-from wtforms import SubmitField, StringField
-from wtforms.validators import DataRequired, ValidationError
+from wtforms import SubmitField, StringField, IntegerField, FloatField
+from wtforms.validators import DataRequired, ValidationError, Optional
 from flask_pagedown.fields import PageDownField
 from flask_login import current_user
 from tymenu.models import Recipe
@@ -10,15 +10,18 @@ from tymenu.models import Recipe
 
 class RecipeForm(FlaskForm):
     title = StringField("Title:", validators=[DataRequired()])
+    servings = IntegerField("Number of servings:", validators=[DataRequired()])
+    kcal = FloatField("Calories (total):", validators=[Optional(strip_whitespace=True)])
     ingredients = PageDownField("Ingredients:", validators=[DataRequired()])
     instructions = PageDownField("Instructions:", validators=[DataRequired()])
     keywords = StringField("Keywords:", validators=[DataRequired()])
     source = StringField("Source:")
     submit = SubmitField("Submit")
+    cancel = SubmitField(label="Cancel", render_kw={"formnovalidate": True})
 
     def __init__(self, edit_id=None, **kwargs):
         super().__init__(**kwargs)
-        self.edit_id = edit_id  # ID of the
+        self.edit_id = edit_id  # ID of the recipe which is being edited.
 
     @property
     def is_edit(self) -> bool:
@@ -37,11 +40,14 @@ class RecipeForm(FlaskForm):
     def construct_recipe_kwargs(self, author=True) -> Dict[str, Any]:
         kwargs = dict(
             title=self.title.data,
+            servings=self.servings.data,
             ingredients=self.ingredients.data,
             instructions=self.instructions.data,
             keywords=self.keywords.data,
             source=self.source.data,
         )
+        if self.kcal.data is not None:
+            kwargs["kcal"] = self.kcal.data
         if author:
             kwargs.update(author=current_user._get_current_object())
         return kwargs
@@ -58,9 +64,18 @@ class RecipeForm(FlaskForm):
 
     def fill_from_existing_recipe(self, recipe: Recipe):
         """Fill fields from an existing recipe"""
-        for field in ("title", "ingredients", "instructions", "keywords", "source"):
+        for field in (
+            "title",
+            "ingredients",
+            "instructions",
+            "keywords",
+            "source",
+            "servings",
+            "kcal",
+        ):
             value = getattr(recipe, field)
-            getattr(self, field).data = value
+            if value is not None:
+                getattr(self, field).data = value
 
 
 class SimpleSearch(FlaskForm):
