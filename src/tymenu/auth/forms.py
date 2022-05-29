@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, BooleanField, SubmitField
-from wtforms.validators import DataRequired, Length, Email, Regexp, EqualTo
+from wtforms.validators import DataRequired, Length, Email, EqualTo
 from wtforms import ValidationError
 from tymenu.models import User
 
@@ -19,11 +19,6 @@ class RegistrationForm(FlaskForm):
         validators=[
             DataRequired(),
             Length(1, 64),
-            Regexp(
-                "^[A-Za-z][A-Za-z0-9_. ]*$",
-                0,
-                "Usernames must have only letters, numbers, dots or underscores",
-            ),
         ],
     )
     password = PasswordField(
