@@ -12,6 +12,9 @@ class Config:
     SECRET_KEY = os.environ.get("SECRET_KEY") or "unpiloted-flashcard-reuse-swoop"
     TYMENU_ADMIN = os.environ.get("TYMENU_ADMIN")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        "pool_recycle": int(os.environ.get("SQLALCHEMY_POOL_RECYCLE", -1)),
+    }
     TYMENU_RECIPES_PER_PAGE = 10
 
     MAIL_SERVER = os.environ.get("MAIL_SERVER", "smtp.googlemail.com")
