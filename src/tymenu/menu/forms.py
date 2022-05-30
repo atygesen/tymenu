@@ -19,23 +19,15 @@ class RecipeForm(FlaskForm):
     submit = SubmitField("Submit")
     cancel = SubmitField(label="Cancel", render_kw={"formnovalidate": True})
 
-    def __init__(self, edit_id=None, **kwargs):
-        super().__init__(**kwargs)
-        self.edit_id = edit_id  # ID of the recipe which is being edited.
-
-    @property
-    def is_edit(self) -> bool:
-        """Are we currently editing a recipe?"""
-        return self.edit_id is None
-
-    def validate_title(form, field) -> None:
+    def validate_title(self, field) -> None:
         """Ensure the title does not already exist in the database."""
-        existing_recipe = Recipe.query.filter_by(title=field.data).first()
-        if existing_recipe:
-            if not form.is_edit and form.edit_id != existing_recipe.id:
-                # Either we're not editing, or we tried to change the name into
-                # something which already exists.
+        existing_recipe = Recipe.query.filter_by(title=field.data).all()
+        for recipe in existing_recipe:
+            if self._recipe_matches_title(recipe, field.data):
                 raise ValidationError("Title exists already.")
+
+    def _recipe_matches_title(self, recipe: Recipe, title: str) -> bool:
+        return recipe.title == title
 
     def construct_recipe_kwargs(self, author=True) -> Dict[str, Any]:
         kwargs = dict(
@@ -76,6 +68,18 @@ class RecipeForm(FlaskForm):
             value = getattr(recipe, field)
             if value is not None:
                 getattr(self, field).data = value
+
+
+class EditRecipeForm(RecipeForm):
+    def __init__(self, edit_id: int, **kwargs):
+        super().__init__(**kwargs)
+        self.edit_id = edit_id  # ID of the recipe which is being edited.
+
+    def _recipe_matches_title(self, recipe: Recipe, title: str) -> bool:
+        if recipe.id == self.edit_id:
+            # This is our own recipe we're editing.
+            return False
+        return super()._recipe_matches_title(recipe, title)
 
 
 class SimpleSearch(FlaskForm):

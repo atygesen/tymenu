@@ -17,5 +17,9 @@ def permission_required(permission):
     return decorator
 
 
+def mod_required(f):
+    return permission_required(Permission.MODERATE)(f)
+
+
 def admin_required(f):
     return permission_required(Permission.ADMIN)(f)

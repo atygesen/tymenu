@@ -3,14 +3,18 @@ from flask_login.utils import login_required
 from sqlalchemy.exc import IntegrityError
 from tymenu.models import Recipe
 from tymenu.resources import get_db
+from tymenu.decorators import mod_required
 from .blueprint import menu_blueprint as menu
-from .forms import RecipeForm, SimpleSearch
+from .forms import RecipeForm, SimpleSearch, EditRecipeForm
 
 
 @menu.route("/new_recipe", methods=["GET", "POST"])
 @login_required
 def new_recipe():
     form = RecipeForm()
+
+    if form.cancel.data:
+        return redirect(url_for("main.index"))
 
     if form.validate_on_submit():
         recipe = form.construct_new_recipe()
@@ -82,10 +86,11 @@ def view_recipe(recipe_id):
 
 @menu.route("/edit/<int:recipe_id>", methods=["GET", "POST"])
 @login_required
+@mod_required
 def edit_recipe(recipe_id):
     recipe = Recipe.query.get_or_404(recipe_id)
     # Allow any user to edit?
-    form = RecipeForm(edit_id=recipe_id)
+    form = EditRecipeForm(recipe_id)
     if request.method == "POST":
         if form.cancel.data:
             return redirect(url_for("menu.view_recipe", recipe_id=recipe_id))
@@ -102,4 +107,22 @@ def edit_recipe(recipe_id):
             flash(f"Recipe '{recipe.title}' has been updated.")
         return redirect(url_for(".view_recipe", recipe_id=recipe_id))
     form.fill_from_existing_recipe(recipe)
-    return render_template("menu/edit_recipe.html", form=form)
+    return render_template("menu/edit_recipe.html", form=form, recipe=recipe)
+
+
+@menu.route("/delete/<int:recipe_id>")
+@login_required
+@mod_required
+def delete_recipe(recipe_id):
+    recipe = Recipe.query.get_or_404(recipe_id)
+    db = get_db()
+    try:
+        db.session.delete(recipe)
+        db.session.commit()
+    except IntegrityError as exc:
+        db.session.rollback()
+        flash(f"An error occurred while updating recipe: {exc}")
+    else:
+        flash(f"Recipe '{recipe.title}' was deleted.")
+
+    return redirect(url_for("main.index"))

@@ -237,6 +237,9 @@ class AnonymousUser(AnonymousUserMixin):
     def is_administrator(self):
         return False
 
+    def is_mod(self):
+        return False
+
 
 login_manager.anonymous_user = AnonymousUser
 
@@ -325,6 +328,9 @@ class User(UserMixin, db.Model):
 
     def is_administrator(self) -> bool:
         return self.can(Permission.ADMIN)
+
+    def is_mod(self):
+        return self.can(Permission.MODERATE)
 
     def set_role(self, role_name: str) -> None:
         """Change the role of a user using a string.
