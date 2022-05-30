@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% import "_macros.html" as macros %}
+
+{% block title %}TyMenu - Users{% endblock %}
+
+{% block page_content %}
+
+<div class="pagination">
+    {{ macros.pagination_widget(pagination, '.users') }}
+</div>
+{% include '_users.html' %}
+<div class="pagination">
+    {{ macros.pagination_widget(pagination, '.users') }}
+</div>
+
+
+
+{% endblock %}

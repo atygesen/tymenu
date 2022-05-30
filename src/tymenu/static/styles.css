@@ -6,6 +6,21 @@
     min-height: 160px;
     margin-left: 170px;
 }
+ul.user {
+    list-style-type: none;
+    padding: 0px;
+    margin: 16px 0px 0px 0px;
+    border-top: 1px solid #e0e0e0;
+}
+ul.recipes li.user {
+    padding: 8px;
+    border-bottom: 1px solid #e0e0e0;
+}
+div.user-content {
+    margin-left: 48px;
+    min-height: 48px;
+}
+
 ul.recipe {
     list-style-type: none;
     padding: 0px;
@@ -28,7 +43,7 @@ div.recipe-author {
 div.recipe-title {
     font-weight: bold;
 }
-div.recipe-thumbnail {
+div.user-thumbnail {
     position: absolute;
 }
 div.recipe-content {

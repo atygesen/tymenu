@@ -15,7 +15,8 @@ class Config:
     SQLALCHEMY_ENGINE_OPTIONS = {
         "pool_recycle": int(os.environ.get("SQLALCHEMY_POOL_RECYCLE", -1)),
     }
-    TYMENU_RECIPES_PER_PAGE = 10
+    TYMENU_RECIPES_PER_PAGE = int(os.environ.get("TYMENU_RECIPES_PER_PAGE", 5))
+    TYMENU_USERS_PER_PAGE = int(os.environ.get("TYMENU_USERS_PER_PAGE", 10))
 
     MAIL_SERVER = os.environ.get("MAIL_SERVER", "smtp.googlemail.com")
     MAIL_PORT = int(os.environ.get("MAIL_PORT", "587"))

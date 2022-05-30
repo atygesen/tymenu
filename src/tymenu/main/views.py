@@ -15,6 +15,18 @@ def index():
     return render_template("index.html", recipes=recipes, recipes_list_max=5, pagination=pagination)
 
 
+@main.route("/users")
+def users():
+    page = request.args.get("page", 1, type=int)
+    pagination = User.query.order_by(User.id.asc()).paginate(
+        page,
+        per_page=current_app.config["TYMENU_USERS_PER_PAGE"],
+        error_out=False,
+    )
+    users = pagination.items
+    return render_template("users.html", users=users, pagination=pagination)
+
+
 @main.route("/profile/<int:id>")
 def profile(id):
     user = User.query.get_or_404(id)
