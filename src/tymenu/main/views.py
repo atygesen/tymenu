@@ -40,3 +40,8 @@ def profile(id):
     return render_template(
         "profile.html", user=user, recipes=recipes, recipes_list_max=5, pagination=pagination
     )
+
+
+@main.route("/links")
+def links():
+    return render_template("links.html")
