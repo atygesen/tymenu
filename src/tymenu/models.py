@@ -86,6 +86,7 @@ class Recipe(db.Model):
     title: str = db.Column(db.String(64), unique=True)
     ingredients: str = db.Column(db.Text)
     instructions: str = db.Column(db.Text)
+    background: str = db.Column(db.Text, nullable=True)
     keywords: str = db.Column(db.Text)
     source: str = db.Column(db.String(64))
     servings: int = db.Column(db.Integer)
@@ -93,6 +94,7 @@ class Recipe(db.Model):
     # Special columns with sanitized HTML from Markdown
     ingredients_html: str = db.Column(db.Text)
     instructions_html: str = db.Column(db.Text)
+    background_html: str = db.Column(db.Text)
 
     def __repr__(self) -> str:
         return f"<Recipe {self.title!r} by {self.author!r}>"
@@ -152,10 +154,17 @@ class Recipe(db.Model):
     def on_changed_ingredients(target, value, oldvalue, initiator):
         target.ingredients_html = clean_markdown_to_html(value)
 
+    @staticmethod
+    def on_changed_background(target, value, oldvalue, initiator):
+        if value is None:
+            target.background_html = ""
+        target.background_html = clean_markdown_to_html(value)
+
 
 # Listen to set the markdown -> HTML conversion
 db.event.listen(Recipe.ingredients, "set", Recipe.on_changed_ingredients)
 db.event.listen(Recipe.instructions, "set", Recipe.on_changed_instructions)
+db.event.listen(Recipe.background, "set", Recipe.on_changed_background)
 
 
 class Role(db.Model):

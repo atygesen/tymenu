@@ -22,12 +22,13 @@ def new_recipe():
         try:
             db.session.add(recipe)
             db.session.commit()
-        except IntegrityError as exc:
+        except Exception as exc:
             db.session.rollback()
             flash(f"An error occurred while creating the recipe: {exc}")
+            return redirect(url_for("main.index"))
         else:
             flash(f"New recipe '{recipe.title}' has been added.")
-        return redirect(url_for(".new_recipe"))
+        return redirect(url_for(".view_recipe", recipe_id=recipe.id))
     return render_template("menu/new_recipe.html", form=form)
 
 

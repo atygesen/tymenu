@@ -10,6 +10,7 @@ from tymenu.models import Recipe
 
 class RecipeForm(FlaskForm):
     title = StringField("Title:", validators=[DataRequired()])
+    background = PageDownField("Background:", validators=[Optional(strip_whitespace=True)])
     servings = IntegerField("Number of servings:", validators=[DataRequired()])
     kcal = FloatField("Calories (total):", validators=[Optional(strip_whitespace=True)])
     ingredients = PageDownField("Ingredients:", validators=[DataRequired()])
@@ -18,6 +19,19 @@ class RecipeForm(FlaskForm):
     source = StringField("Source:")
     submit = SubmitField("Submit")
     cancel = SubmitField(label="Cancel", render_kw={"formnovalidate": True})
+
+    @staticmethod
+    def all_data_field_names():
+        return [
+            "title",
+            "background",
+            "ingredients",
+            "instructions",
+            "keywords",
+            "source",
+            "servings",
+            "kcal",
+        ]
 
     def validate_title(self, field) -> None:
         """Ensure the title does not already exist in the database."""
@@ -30,16 +44,9 @@ class RecipeForm(FlaskForm):
         return recipe.title == title
 
     def construct_recipe_kwargs(self, author=True) -> Dict[str, Any]:
-        kwargs = dict(
-            title=self.title.data,
-            servings=self.servings.data,
-            ingredients=self.ingredients.data,
-            instructions=self.instructions.data,
-            keywords=self.keywords.data,
-            source=self.source.data,
-        )
-        if self.kcal.data is not None:
-            kwargs["kcal"] = self.kcal.data
+        kwargs = {}
+        for field in self.all_data_field_names():
+            kwargs[field] = getattr(self, field).data
         if author:
             kwargs.update(author=current_user._get_current_object())
         return kwargs
@@ -56,15 +63,7 @@ class RecipeForm(FlaskForm):
 
     def fill_from_existing_recipe(self, recipe: Recipe):
         """Fill fields from an existing recipe"""
-        for field in (
-            "title",
-            "ingredients",
-            "instructions",
-            "keywords",
-            "source",
-            "servings",
-            "kcal",
-        ):
+        for field in self.all_data_field_names():
             value = getattr(recipe, field)
             if value is not None:
                 getattr(self, field).data = value
