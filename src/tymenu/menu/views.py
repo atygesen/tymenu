@@ -1,11 +1,100 @@
+from typing import NamedTuple, Optional
+import base64
+import requests
+import tempfile
 from flask import redirect, url_for, render_template, flash, request, current_app
 from flask_login.utils import login_required
 from sqlalchemy.exc import IntegrityError
+from werkzeug.datastructures import FileStorage
 from tymenu.models import Recipe
 from tymenu.resources import get_db
 from tymenu.decorators import mod_required
 from .blueprint import menu_blueprint as menu
 from .forms import RecipeForm, SimpleSearch, EditRecipeForm
+
+ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif"}
+
+
+def allowed_file(filename):
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+class ImageUrlData(NamedTuple):
+    display_url: str
+    delete_url: str
+
+
+def redirect_recipe(recipe_id: int):
+    return redirect(url_for("menu.view_recipe", recipe_id=recipe_id))
+
+
+def _do_upload_file(file: FileStorage) -> Optional[ImageUrlData]:
+    """Upload the image file to img BB"""
+    config = current_app._get_current_object().config
+    api_key = config["IMGBB_API_KEY"]
+    if not api_key:
+        flash("imgbb API key is not configured.")
+        return None
+
+    with tempfile.TemporaryFile() as dst:
+        file.save(dst)
+        dst.seek(0)
+        encoded = base64.b64encode(dst.read())
+
+    url = "https://api.imgbb.com/1/upload"
+    payload = {
+        "key": api_key,
+        "image": encoded,
+    }
+    res = requests.post(url, payload)
+
+    if res.status_code != 200:
+        # Something happened
+        flash("An error occured during upload.")
+        return None
+    flash("Image was uploaded.")
+
+    # Retrieve the display URL
+    data = res.json().get("data", None)
+    if data is None:
+        flash("No data was received?")
+        return None
+    delete_url = data["delete_url"]
+    display_url = data["display_url"]
+    return ImageUrlData(display_url, delete_url)
+
+
+@menu.route("/upload/<int:recipe_id>", methods=["GET", "POST"])
+@login_required
+@mod_required
+def upload_file(recipe_id: int):
+    recipe = Recipe.query.get_or_404(recipe_id)
+    if request.method == "POST":
+        # check if the post request has the file part
+        if "file" not in request.files:
+            flash("No file part")
+            return redirect(request.url)
+        file = request.files["file"]
+        # If the user does not select a file, the browser submits an
+        # empty file without a filename.
+        if file.filename == "":
+            flash("No file was selected.")
+            return redirect(request.url)
+        if file and allowed_file(file.filename):
+            url_data = _do_upload_file(file)
+            if url_data is None:
+                # Something went wrong
+                return redirect_recipe(recipe_id)
+            recipe.img_display_url = url_data.display_url
+            recipe.img_delete_url = url_data.delete_url
+            db = get_db()
+            try:
+                db.session.commit()
+            except Exception as exc:
+                db.session.rollback()
+                flash(f"An error occurred while creating the recipe: {exc}")
+            return redirect_recipe(recipe_id)
+    return render_template("menu/upload_image.html", recipe_id=recipe_id)
 
 
 @menu.route("/new_recipe", methods=["GET", "POST"])
@@ -28,7 +117,7 @@ def new_recipe():
             return redirect(url_for("main.index"))
         else:
             flash(f"New recipe '{recipe.title}' has been added.")
-        return redirect(url_for(".view_recipe", recipe_id=recipe.id))
+        return redirect_recipe(recipe.id)
     return render_template("menu/new_recipe.html", form=form)
 
 
@@ -122,7 +211,7 @@ def delete_recipe(recipe_id):
         db.session.commit()
     except IntegrityError as exc:
         db.session.rollback()
-        flash(f"An error occurred while updating recipe: {exc}")
+        flash(f"An error occurred while deleting recipe: {exc}")
     else:
         flash(f"Recipe '{recipe.title}' was deleted.")
 

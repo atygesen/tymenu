@@ -96,6 +96,10 @@ class Recipe(db.Model):
     instructions_html: str = db.Column(db.Text)
     background_html: str = db.Column(db.Text)
 
+    # img_url to BBimg
+    img_display_url: str = db.Column(db.Text, nullable=True)
+    img_delete_url: str = db.Column(db.Text, nullable=True)
+
     def __repr__(self) -> str:
         return f"<Recipe {self.title!r} by {self.author!r}>"
 

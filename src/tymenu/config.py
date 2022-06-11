@@ -26,6 +26,11 @@ class Config:
     TYMENU_MAIL_SUBJECT_PREFIX = "[TyMenu]"
     TYMENU_MAIL_SENDER = "TyMenu Admin <tymenuapp@gmail.com>"
 
+    IMGBB_API_KEY = os.environ.get("IMGBB_API_KEY")
+    MAX_CONTENT_LENGTH = os.environ.get(
+        "MAX_CONTENT_LENGTH", 16 * 1000 * 1000
+    )  # Default 16 megabytes
+
     @staticmethod
     def init_app(app):
         pass
