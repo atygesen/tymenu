@@ -19,7 +19,7 @@
             </div>
             <div class="recipe-body>">
                 {% if recipe.kcal_pers %}
-                <p>{{ recipe.kcal_pers }} kcal per person</p>
+                <p>{{ '%d'|format(recipe.kcal_pers|int) }} kcal per person</p>
                 {% endif %}
                 {{ recipe.short_ingredients_list(nmax=recipes_list_max) | safe }}
             </div>

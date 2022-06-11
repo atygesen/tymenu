@@ -32,8 +32,8 @@
     <h3> Serving</h3>
     Number of servings: {{ recipe.servings }} <br>
     {% if recipe.kcal %}
-    Calories: {{ recipe.kcal }} kcal<br>
-    Per Serving: {{ '%0.2f'|format(recipe.kcal / recipe.servings|float) }}
+    Calories: {{ '%d'|format(recipe.kcal|int) }} kcal<br>
+    Per Serving: {{ '%d'|format(recipe.kcal / recipe.servings|int) }} kcal per person
     {% endif %}
 </div>
 
