@@ -9,6 +9,7 @@ from flask_login import UserMixin, AnonymousUserMixin
 import sqlalchemy as sql
 from markdown import markdown
 import bleach
+import emoji
 
 from .search import query_substrings, get_operation
 from .resources import get_db, get_login_manager
@@ -48,7 +49,11 @@ def decode(token, leeway: int = 10):
     )
 
 
-def clean_markdown_to_html(value: str) -> str:
+def emojify_str(s: str) -> str:
+    return emoji.emojize(s, language="alias", variant="emoji_type")
+
+
+def clean_markdown_to_html(value: str, emojify=True) -> str:
     allowed_tags = [
         "a",
         "abbr",
@@ -68,13 +73,16 @@ def clean_markdown_to_html(value: str) -> str:
         "h3",
         "p",
     ]
-    return bleach.linkify(
+    cleaned = bleach.linkify(
         bleach.clean(
             markdown(value, output_format="html"),
             tags=allowed_tags,
             strip=True,
         )
     )
+    if emojify:
+        cleaned = emojify_str(cleaned)
+    return cleaned
 
 
 class Recipe(db.Model):
