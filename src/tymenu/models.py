@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import List, Dict
+from typing import List, Dict, Optional
 import datetime
 import hashlib
 import jwt
@@ -110,6 +110,12 @@ class Recipe(db.Model):
 
     def __repr__(self) -> str:
         return f"<Recipe {self.title!r} by {self.author!r}>"
+
+    @property
+    def kcal_pers(self) -> Optional[float]:
+        if self.kcal is None or self.servings is None:
+            return None
+        return self.kcal / self.servings
 
     @classmethod
     def search_string(cls, string: str):

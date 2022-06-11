@@ -18,8 +18,8 @@
                 {{ recipe.author.username }}
             </div>
             <div class="recipe-body>">
-                {% if recipe.kcal %}
-                    <p>{{ recipe.kcal }} kcal</p>
+                {% if recipe.kcal_pers %}
+                <p>{{ recipe.kcal_pers }} kcal per person</p>
                 {% endif %}
                 {{ recipe.short_ingredients_list(nmax=recipes_list_max) | safe }}
             </div>
