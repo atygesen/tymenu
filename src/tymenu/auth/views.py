@@ -1,3 +1,4 @@
+import logging
 from flask import render_template, redirect, request, url_for, flash
 from flask_login import login_user, logout_user, login_required, current_user
 
@@ -6,8 +7,9 @@ from .blueprint import auth_blueprint as auth
 from tymenu.resources import get_db
 from tymenu.models import User
 from tymenu.email import send_email
-from tymenu.log import log_info
 from . import forms
+
+logger = logging.getLogger(__name__)
 
 #
 # forms import LoginForm, RegistrationForm, ChangePasswordForm, PasswordResetRequestForm
@@ -42,7 +44,7 @@ def login():
         user = User.query.filter_by(email=form.email.data.lower()).first()
         if user is not None and user.verify_password(form.password.data):
             login_user(user, form.remember_me.data)
-            log_info("Logged in user %s", user.username)
+            logger.info("Logged in user: %s", user.username)
             next = request.args.get("next")
             if next is None or not next.startswith("/"):
                 next = url_for("main.index")

@@ -2,6 +2,7 @@ from typing import NamedTuple, Optional
 import base64
 import requests
 import tempfile
+import logging
 from flask import redirect, url_for, render_template, flash, request, current_app
 from flask_login.utils import login_required
 from sqlalchemy.exc import IntegrityError
@@ -11,6 +12,8 @@ from tymenu.resources import get_db
 from tymenu.decorators import mod_required
 from .blueprint import menu_blueprint as menu
 from .forms import RecipeForm, SimpleSearch, EditRecipeForm
+
+logger = logging.getLogger(__name__)
 
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif"}
 
@@ -36,8 +39,10 @@ def _do_upload_file(file: FileStorage) -> Optional[ImageUrlData]:
     api_key = config["IMGBB_API_KEY"]
     if not api_key:
         flash("imgbb API key is not configured.")
+        logger.warning("No API key for imgbb.")
         return None
 
+    logger.info("Uploading file: %s", file.filename)
     with tempfile.TemporaryFile() as dst:
         file.save(dst)
         dst.seek(0)
@@ -50,6 +55,8 @@ def _do_upload_file(file: FileStorage) -> Optional[ImageUrlData]:
     }
     res = requests.post(url, payload)
 
+    logger.info("Retrieved payload: %s", res)
+
     if res.status_code != 200:
         # Something happened
         flash("An error occured during upload.")
@@ -58,11 +65,9 @@ def _do_upload_file(file: FileStorage) -> Optional[ImageUrlData]:
 
     # Retrieve the display URL
     data = res.json().get("data", None)
-    from pprint import pprint
-
-    pprint(data)
     if data is None:
         flash("No data was received?")
+        logger.info("No data.")
         return None
     delete_url = data["delete_url"]
     display_url = data["display_url"]
@@ -98,9 +103,11 @@ def upload_file(recipe_id: int):
             recipe.img_url_viewer = url_data.url_viewer
 
             db = get_db()
+            logger.info("Comitting image URL's to recipe with ID %d", recipe.id)
             try:
                 db.session.commit()
             except Exception as exc:
+                logger.error("An error occurred during commit: %s", exc)
                 db.session.rollback()
                 flash(f"An error occurred while creating the recipe: {exc}")
             return redirect_recipe(recipe_id)
@@ -118,10 +125,12 @@ def new_recipe():
     if form.validate_on_submit():
         recipe = form.construct_new_recipe()
         db = get_db()
+        logger.info("Adding new recipe to DB with ID %d", recipe.id)
         try:
             db.session.add(recipe)
             db.session.commit()
         except Exception as exc:
+            logger.error("An error happened while comitting recipe: %s", exc)
             db.session.rollback()
             flash(f"An error occurred while creating the recipe: {exc}")
             return redirect(url_for("main.index"))
@@ -197,10 +206,12 @@ def edit_recipe(recipe_id):
     if form.validate_on_submit():
         form.update_recipe(recipe)
         db = get_db()
+        logger.info("Comitting edit to recipe with ID: %d", recipe.id)
         try:
             db.session.add(recipe)
             db.session.commit()
         except IntegrityError as exc:
+            logger.error("An error occurred during update: %s", exc)
             db.session.rollback()
             flash(f"An error occurred while updating recipe: {exc}")
         else:
@@ -216,10 +227,12 @@ def edit_recipe(recipe_id):
 def delete_recipe(recipe_id):
     recipe = Recipe.query.get_or_404(recipe_id)
     db = get_db()
+    logger.info("Deleting recipe with ID: %d", recipe.id)
     try:
         db.session.delete(recipe)
         db.session.commit()
     except IntegrityError as exc:
+        logger.error("An error occurred during delete: %s", exc)
         db.session.rollback()
         flash(f"An error occurred while deleting recipe: {exc}")
     else:
