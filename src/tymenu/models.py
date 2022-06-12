@@ -1,4 +1,5 @@
 from __future__ import annotations
+from enum import IntEnum, unique
 from typing import List, Dict, Optional
 import datetime
 import hashlib
@@ -13,6 +14,12 @@ import emoji
 
 from .search import query_substrings, get_operation
 from .resources import get_db, get_login_manager
+
+
+@unique
+class KcalType(IntEnum):
+    PER_PERSON = 1
+    TOTAL = 2
 
 
 class Permission:
@@ -99,6 +106,7 @@ class Recipe(db.Model):
     source: str = db.Column(db.String(64))
     servings: int = db.Column(db.Integer)
     kcal: float = db.Column(db.Float, nullable=True)
+    kcal_type: int = db.Column(db.Integer)  # are kcal measured in per person or in total
     # Special columns with sanitized HTML from Markdown
     ingredients_html: str = db.Column(db.Text)
     instructions_html: str = db.Column(db.Text)
@@ -115,9 +123,24 @@ class Recipe(db.Model):
 
     @property
     def kcal_pers(self) -> Optional[float]:
-        if self.kcal is None or self.servings is None:
+        if self.kcal is None:
+            return None
+        if self.kcal_type == KcalType.PER_PERSON:
+            return self.kcal
+        # kcal are measured in totals
+        if self.servings is None:
             return None
         return self.kcal / self.servings
+
+    @property
+    def kcal_total(self) -> Optional[float]:
+        if self.kcal is None:
+            return None
+        if self.kcal_type == KcalType.TOTAL:
+            return self.kcal
+        if self.servings is None:
+            return None
+        return self.kcal * self.servings
 
     @classmethod
     def search_string(cls, string: str):

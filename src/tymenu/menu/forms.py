@@ -1,18 +1,26 @@
 from typing import Dict, Any
 from datetime import datetime
 from flask_wtf import FlaskForm
-from wtforms import SubmitField, StringField, IntegerField, FloatField
+from wtforms import SubmitField, StringField, IntegerField, FloatField, SelectField
 from wtforms.validators import DataRequired, ValidationError, Optional
 from flask_pagedown.fields import PageDownField
 from flask_login import current_user
-from tymenu.models import Recipe
+from tymenu.models import Recipe, KcalType
 
 
 class RecipeForm(FlaskForm):
     title = StringField("Title:", validators=[DataRequired()])
     background = PageDownField("Background:", validators=[Optional(strip_whitespace=True)])
     servings = IntegerField("Number of servings:", validators=[DataRequired()])
-    kcal = FloatField("Calories (total):", validators=[Optional(strip_whitespace=True)])
+    kcal_type = SelectField(
+        "Kcal type:",
+        choices=[
+            (str(KcalType.PER_PERSON.value), "Per Person"),
+            (str(KcalType.TOTAL.value), "Total"),
+        ],
+        coerce=int,
+    )
+    kcal = FloatField("Calories:", validators=[Optional(strip_whitespace=True)])
     ingredients = PageDownField("Ingredients:", validators=[DataRequired()])
     instructions = PageDownField("Instructions:", validators=[DataRequired()])
     keywords = StringField("Keywords:", validators=[DataRequired()])
@@ -31,6 +39,7 @@ class RecipeForm(FlaskForm):
             "source",
             "servings",
             "kcal",
+            "kcal_type",
         ]
 
     def validate_title(self, field) -> None:
@@ -49,6 +58,7 @@ class RecipeForm(FlaskForm):
             kwargs[field] = getattr(self, field).data
         if author:
             kwargs.update(author=current_user._get_current_object())
+        print("FORM", kwargs)
         return kwargs
 
     def construct_new_recipe(self) -> Recipe:
