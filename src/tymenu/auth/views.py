@@ -6,6 +6,7 @@ from .blueprint import auth_blueprint as auth
 from tymenu.resources import get_db
 from tymenu.models import User
 from tymenu.email import send_email
+from tymenu.log import log_info
 from . import forms
 
 #
@@ -41,6 +42,7 @@ def login():
         user = User.query.filter_by(email=form.email.data.lower()).first()
         if user is not None and user.verify_password(form.password.data):
             login_user(user, form.remember_me.data)
+            log_info("Logged in user %s", user.username)
             next = request.args.get("next")
             if next is None or not next.startswith("/"):
                 next = url_for("main.index")
