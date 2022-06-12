@@ -1,10 +1,16 @@
-from flask import render_template, request, current_app
+import logging
+from flask import render_template, request, current_app, url_for
 from tymenu.models import Recipe, User
 from . import main_blueprint as main
+
+logger = logging.getLogger(__name__)
 
 
 @main.route("/")
 def index():
+    # static path
+    static = url_for("static", filename="styles.css")
+    logger.info("Serving from static path: %s", static)
     page = request.args.get("page", 1, type=int)
     pagination = Recipe.query.order_by(Recipe.timestamp.desc()).paginate(
         page,

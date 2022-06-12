@@ -1,6 +1,6 @@
 from typing import Dict, Any
 import logging
-from flask import Flask, url_for
+from flask import Flask
 from flask_bootstrap import Bootstrap
 from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
@@ -40,9 +40,6 @@ def get_plugins() -> Dict[str, Any]:
 
 
 def init_plugins(app: Flask) -> None:
-    # static path
-    static = url_for("static", filename="styles.css")
-    logger.info("Serving from static path: %s", static)
     for plugin_name, plugin in _RESOURCES.items():
         logger.info("Initializing plugin %s.", plugin_name)
         plugin.init_app(app)
