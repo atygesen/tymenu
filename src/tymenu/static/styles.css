@@ -3,9 +3,9 @@
     float: left;
 }
 
-div.recipe-thumbnail {
-    position: relative;
-    float: right;
+.navbar-inverse {
+    background-color: rgb(33, 0, 74) !important;
+    border-color: #080808;
 }
 
 .profile-header {
@@ -71,4 +71,9 @@ div.recipe-content {
 
 div.recipe-footer {
     text-align: right;
+}
+
+div.recipe-thumbnail {
+    position: relative;
+    float: right;
 }
