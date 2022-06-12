@@ -8,11 +8,17 @@
             </a>
         </h4>
     </div>
-    <li class="recipe">
+    <li class="recipe" onclick="location.href = '{{ url_for('menu.view_recipe', recipe_id=recipe.id) }}';">
         <div class="user-thumbnail">
             <img class="img-rounded profile-thumbnail" src="{{ recipe.author.gravatar(size=40) }}">
         </div>
-        <div class="recipe-date"> {{ moment(recipe.timestamp).fromNow() }}</div>
+        {% if recipe.img_thumbnail_url %}
+        <div class="recipe-thumbnail">
+            <a href="{{ recipe.img_display_url }}"><img src="{{ recipe.img_thumbnail_url }}" alt="img" border="0" ,
+                    width="70px"></a>
+        </div>
+        {% endif %}
+
         <div class="recipe-content">
             <div class="recipe-author">
                 {{ recipe.author.username }}
@@ -23,6 +29,7 @@
                 {% endif %}
                 {{ recipe.short_ingredients_list(nmax=recipes_list_max) | safe }}
             </div>
+            <div class="recipe-date"> {{ moment(recipe.timestamp).fromNow() }}</div>
         </div>
     </li>
     {% endfor %}

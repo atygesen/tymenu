@@ -22,6 +22,8 @@ def allowed_file(filename):
 class ImageUrlData(NamedTuple):
     display_url: str
     delete_url: str
+    thumb_url: str
+    url_viewer: str
 
 
 def redirect_recipe(recipe_id: int):
@@ -56,12 +58,17 @@ def _do_upload_file(file: FileStorage) -> Optional[ImageUrlData]:
 
     # Retrieve the display URL
     data = res.json().get("data", None)
+    from pprint import pprint
+
+    pprint(data)
     if data is None:
         flash("No data was received?")
         return None
     delete_url = data["delete_url"]
     display_url = data["display_url"]
-    return ImageUrlData(display_url, delete_url)
+    thumb_url = data["thumb"]["url"]
+    url_viewer = data["url_viewer"]
+    return ImageUrlData(display_url, delete_url, thumb_url, url_viewer)
 
 
 @menu.route("/upload/<int:recipe_id>", methods=["GET", "POST"])
@@ -87,6 +94,9 @@ def upload_file(recipe_id: int):
                 return redirect_recipe(recipe_id)
             recipe.img_display_url = url_data.display_url
             recipe.img_delete_url = url_data.delete_url
+            recipe.img_thumbnail_url = url_data.thumb_url
+            recipe.img_url_viewer = url_data.url_viewer
+
             db = get_db()
             try:
                 db.session.commit()

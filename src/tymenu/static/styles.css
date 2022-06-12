@@ -2,20 +2,29 @@
     position: absolute;
     float: left;
 }
+
+div.recipe-thumbnail {
+    position: relative;
+    float: right;
+}
+
 .profile-header {
     min-height: 160px;
     margin-left: 170px;
 }
+
 ul.user {
     list-style-type: none;
     padding: 0px;
     margin: 16px 0px 0px 0px;
     border-top: 1px solid #e0e0e0;
 }
+
 ul.recipes li.user {
     padding: 8px;
     border-bottom: 1px solid #e0e0e0;
 }
+
 div.user-content {
     margin-left: 48px;
     min-height: 48px;
@@ -27,29 +36,39 @@ ul.recipe {
     margin: 16px 0px 0px 0px;
     border-top: 1px solid #e0e0e0;
 }
+
 ul.recipes li.recipe {
     padding: 8px;
     border-bottom: 1px solid #e0e0e0;
 }
+
 ul.recipes li.recipe:hover {
     background-color: #f0f0f0;
 }
+
 div.recipe-date {
     float: right;
+    position: relative;
+    bottom: 9px;
 }
+
 div.recipe-author {
     font-weight: bold;
 }
+
 div.recipe-title {
     font-weight: bold;
 }
+
 div.user-thumbnail {
     position: absolute;
 }
+
 div.recipe-content {
     margin-left: 48px;
     min-height: 48px;
 }
+
 div.recipe-footer {
     text-align: right;
 }

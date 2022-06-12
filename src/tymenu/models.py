@@ -107,6 +107,8 @@ class Recipe(db.Model):
     # img_url to BBimg
     img_display_url: str = db.Column(db.Text, nullable=True)
     img_delete_url: str = db.Column(db.Text, nullable=True)
+    img_thumbnail_url: str = db.Column(db.Text, nullable=True)
+    img_url_viewer: str = db.Column(db.Text, nullable=True)
 
     def __repr__(self) -> str:
         return f"<Recipe {self.title!r} by {self.author!r}>"
