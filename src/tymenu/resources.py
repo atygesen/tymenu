@@ -1,5 +1,6 @@
 from typing import Dict, Any
-from flask import Flask
+import logging
+from flask import Flask, url_for
 from flask_bootstrap import Bootstrap
 from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
@@ -8,6 +9,8 @@ from flask_pagedown import PageDown
 from flask_mail import Mail
 
 __all__ = ["get_db", "get_login_manager", "get_plugins", "init_plugins"]
+
+logger = logging.getLogger(__name__)
 
 _RESOURCES = {
     "bootstrap": Bootstrap(),
@@ -37,5 +40,9 @@ def get_plugins() -> Dict[str, Any]:
 
 
 def init_plugins(app: Flask) -> None:
-    for plugin in _RESOURCES.values():
+    # static path
+    static = url_for("static", filename="styles.css")
+    logger.info("Serving from static path: %s", static)
+    for plugin_name, plugin in _RESOURCES.items():
+        logger.info("Initializing plugin %s.", plugin_name)
         plugin.init_app(app)
