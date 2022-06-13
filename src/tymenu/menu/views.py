@@ -103,13 +103,14 @@ def upload_file(recipe_id: int):
             recipe.img_url_viewer = url_data.url_viewer
 
             db = get_db()
-            logger.info("Comitting image URL's to recipe with ID %d", recipe.id)
             try:
                 db.session.commit()
             except Exception as exc:
                 logger.error("An error occurred during commit: %s", exc)
                 db.session.rollback()
                 flash(f"An error occurred while creating the recipe: {exc}")
+            else:
+                logger.info("Comitted image URL's to recipe with ID %s", recipe.id)
             return redirect_recipe(recipe_id)
     return render_template("menu/upload_image.html", recipe_id=recipe_id)
 
@@ -125,7 +126,6 @@ def new_recipe():
     if form.validate_on_submit():
         recipe = form.construct_new_recipe()
         db = get_db()
-        logger.info("Adding new recipe to DB with ID %d", recipe.id)
         try:
             db.session.add(recipe)
             db.session.commit()
@@ -135,6 +135,9 @@ def new_recipe():
             flash(f"An error occurred while creating the recipe: {exc}")
             return redirect(url_for("main.index"))
         else:
+            logger.info(
+                "Added a new recipe to DB with ID '%s' and title '%s'", recipe.id, recipe.title
+            )
             flash(f"New recipe '{recipe.title}' has been added.")
         return redirect_recipe(recipe.id)
     return render_template("menu/new_recipe.html", form=form)
@@ -206,7 +209,6 @@ def edit_recipe(recipe_id):
     if form.validate_on_submit():
         form.update_recipe(recipe)
         db = get_db()
-        logger.info("Comitting edit to recipe with ID: %d", recipe.id)
         try:
             db.session.add(recipe)
             db.session.commit()
@@ -215,6 +217,7 @@ def edit_recipe(recipe_id):
             db.session.rollback()
             flash(f"An error occurred while updating recipe: {exc}")
         else:
+            logger.info("Comitted edit to recipe with ID: %s", recipe.id)
             flash(f"Recipe '{recipe.title}' has been updated.")
         return redirect(url_for(".view_recipe", recipe_id=recipe_id))
     form.fill_from_existing_recipe(recipe)
@@ -236,6 +239,7 @@ def delete_recipe(recipe_id):
         db.session.rollback()
         flash(f"An error occurred while deleting recipe: {exc}")
     else:
+        logger.info("Recipe %s was deleted.", recipe.title)
         flash(f"Recipe '{recipe.title}' was deleted.")
 
     return redirect(url_for("main.index"))
