@@ -31,9 +31,18 @@
 <div>
     <h3> Serving</h3>
     Number of servings: {{ recipe.servings }} <br>
-    {% if recipe.kcal %}
+    {% if recipe.kcal != none %}
     Calories: {{ '%d'|format(recipe.kcal_total|int) }} kcal<br>
     Per Serving: {{ '%d'|format(recipe.kcal_pers|int) }} kcal per person
+    {% endif %}
+    {% if recipe.protein_gram != none %}
+    <br> {{ recipe.protein_string() }}
+    {% endif %}
+    {% if recipe.carb_gram != none %}
+    <br>{{ recipe.carb_string() }}
+    {% endif %}
+    {% if recipe.fat_gram != none %}
+    <br>{{ recipe.fat_string() }}
     {% endif %}
 </div>
 

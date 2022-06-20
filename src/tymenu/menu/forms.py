@@ -21,6 +21,9 @@ class RecipeForm(FlaskForm):
         coerce=int,
     )
     kcal = FloatField("Calories:", validators=[Optional(strip_whitespace=True)])
+    protein_gram = IntegerField("Protein (g):", validators=[Optional(strip_whitespace=True)])
+    carb_gram = IntegerField("Carbs (g):", validators=[Optional(strip_whitespace=True)])
+    fat_gram = IntegerField("Fat (g):", validators=[Optional(strip_whitespace=True)])
     ingredients = PageDownField("Ingredients:", validators=[DataRequired()])
     instructions = PageDownField("Instructions:", validators=[DataRequired()])
     keywords = StringField("Keywords:", validators=[DataRequired()])
@@ -40,6 +43,9 @@ class RecipeForm(FlaskForm):
             "servings",
             "kcal",
             "kcal_type",
+            "protein_gram",
+            "carb_gram",
+            "fat_gram",
         ]
 
     def validate_title(self, field) -> None:

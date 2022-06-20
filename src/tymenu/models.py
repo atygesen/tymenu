@@ -92,6 +92,14 @@ def clean_markdown_to_html(value: str, emojify=True) -> str:
     return cleaned
 
 
+# Energy conversion (kcal/g)
+energy_conversion = {
+    "fat": 8.80,
+    "protein": 4.06,
+    "carb": 4.06,
+}
+
+
 class Recipe(db.Model):
     __tablename__ = "recipe"
     id: int = db.Column(db.Integer, primary_key=True)
@@ -108,9 +116,9 @@ class Recipe(db.Model):
     kcal: float = db.Column(db.Float, nullable=True)
     kcal_type: int = db.Column(db.Integer)  # are kcal measured in per person or in total
     # Breakdown of the kcals
-    kcal_protein = db.Column(db.Float, nullable=True)
-    kcal_carb = db.Column(db.Float, nullable=True)
-    kcal_fat = db.Column(db.Float, nullable=True)
+    protein_gram = db.Column(db.Integer, nullable=True)
+    carb_gram = db.Column(db.Integer, nullable=True)
+    fat_gram = db.Column(db.Integer, nullable=True)
     # Special columns with sanitized HTML from Markdown
     ingredients_html: str = db.Column(db.Text)
     instructions_html: str = db.Column(db.Text)
@@ -135,6 +143,21 @@ class Recipe(db.Model):
         if self.servings is None:
             return None
         return self.kcal / self.servings
+
+    def _energy_string(self, val_g, energy_name, prefix: str):
+        if val_g is None:
+            return ""
+        energy_kcal = energy_conversion[energy_name] * val_g
+        return f"{prefix}: {val_g:d} g ({energy_kcal:.2f} kcal)"
+
+    def protein_string(self):
+        return self._energy_string(self.protein_gram, "protein", "Protein")
+
+    def carb_string(self):
+        return self._energy_string(self.carb_gram, "carb", "Carbs")
+
+    def fat_string(self):
+        return self._energy_string(self.fat_gram, "fat", "Fat")
 
     @property
     def kcal_total(self) -> Optional[float]:
