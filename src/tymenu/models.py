@@ -107,6 +107,10 @@ class Recipe(db.Model):
     servings: int = db.Column(db.Integer)
     kcal: float = db.Column(db.Float, nullable=True)
     kcal_type: int = db.Column(db.Integer)  # are kcal measured in per person or in total
+    # Breakdown of the kcals
+    kcal_protein = db.Column(db.Float, nullable=True)
+    kcal_carb = db.Column(db.Float, nullable=True)
+    kcal_fat = db.Column(db.Float, nullable=True)
     # Special columns with sanitized HTML from Markdown
     ingredients_html: str = db.Column(db.Text)
     instructions_html: str = db.Column(db.Text)
