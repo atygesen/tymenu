@@ -119,6 +119,7 @@ class Recipe(db.Model):
     protein_gram = db.Column(db.Float, nullable=True)
     carb_gram = db.Column(db.Float, nullable=True)
     fat_gram = db.Column(db.Float, nullable=True)
+    cooking_time_min = db.Column(db.Float, nullable=True)
 
     # Special columns with sanitized HTML from Markdown
     ingredients_html: str = db.Column(db.Text)
@@ -168,6 +169,10 @@ class Recipe(db.Model):
 
     def fat_string(self):
         return self._energy_string(self.fat_gram, "fat", "Fat")
+
+    def cooking_time_hh_mm_ss(self):
+        delta = datetime.timedelta(minutes=self.cooking_time_min)
+        return _timedelta_to_hh_mm(delta)
 
     @property
     def kcal_total(self) -> Optional[float]:
@@ -445,3 +450,23 @@ class User(UserMixin, db.Model):
 @login_manager.user_loader
 def load_user(user_id: int) -> User:
     return User.query.get(int(user_id))
+
+
+def _timedelta_to_hh_mm(delta: datetime.timedelta):
+    sec = delta.seconds
+    hours = sec // 3600
+    min_ = (sec // 60) - (hours * 60)
+    # Construct the "minute" string.
+    min_s = f"{min_:d} minute"
+    if min_ != 1:
+        # plural
+        min_s += "s"
+    # Hours?
+    if hours == 0:
+        # No hours, only minutes
+        return min_s
+    if hours == 1:
+        # Singular hour
+        return f"1 hour, {min_s}"
+    # Multuple hours
+    return f"{hours} hours, {min_s}"

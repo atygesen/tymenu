@@ -34,6 +34,10 @@ class RecipeForm(FlaskForm):
     protein_gram = FloatField("Protein (g):", validators=[Optional(strip_whitespace=True)])
     carb_gram = FloatField("Carbs (g):", validators=[Optional(strip_whitespace=True)])
     fat_gram = FloatField("Fat (g):", validators=[Optional(strip_whitespace=True)])
+    cooking_time_min = FloatField(
+        "Cooking time (minutes):", validators=[Optional(strip_whitespace=True)]
+    )
+
     ingredients = PageDownField(_make_label("Ingredients:"), validators=[DataRequired()])
     instructions = PageDownField(_make_label("Instructions:"), validators=[DataRequired()])
     keywords = StringField(_make_label("Keywords:"), validators=[DataRequired()])
@@ -56,6 +60,7 @@ class RecipeForm(FlaskForm):
             "protein_gram",
             "carb_gram",
             "fat_gram",
+            "cooking_time_min",
         ]
 
     def validate_title(self, field) -> None:

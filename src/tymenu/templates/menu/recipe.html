@@ -10,6 +10,9 @@
     <body>
         <i>By:</i> <a href="{{ url_for('main.profile', id=recipe.author.id) }}">{{ recipe.author.username }}</a>
         <br><i>Added:</i> {{ moment(recipe.timestamp).format("LLL") }}
+        {% if recipe.cooking_time_min %}
+        <br> Cooking time: {{ recipe.cooking_time_hh_mm_ss() }}
+        {% endif %}
     </body>
 </div>
 
