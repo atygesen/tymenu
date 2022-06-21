@@ -134,3 +134,6 @@ poetry.lock
 # VSCode
 .vscode
 *.sqlite
+
+# custom scripts
+import_pyanywhere_db.sh

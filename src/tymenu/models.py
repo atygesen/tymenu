@@ -116,9 +116,10 @@ class Recipe(db.Model):
     kcal: float = db.Column(db.Float, nullable=True)
     kcal_type: int = db.Column(db.Integer)  # are kcal measured in per person or in total
     # Breakdown of the kcals
-    protein_gram = db.Column(db.Integer, nullable=True)
-    carb_gram = db.Column(db.Integer, nullable=True)
-    fat_gram = db.Column(db.Integer, nullable=True)
+    protein_gram = db.Column(db.Float, nullable=True)
+    carb_gram = db.Column(db.Float, nullable=True)
+    fat_gram = db.Column(db.Float, nullable=True)
+
     # Special columns with sanitized HTML from Markdown
     ingredients_html: str = db.Column(db.Text)
     instructions_html: str = db.Column(db.Text)
@@ -148,7 +149,16 @@ class Recipe(db.Model):
         if val_g is None:
             return ""
         energy_kcal = energy_conversion[energy_name] * val_g
-        return f"{prefix}: {val_g:d} g ({energy_kcal:.2f} kcal)"
+        val_g = round(val_g, 1)
+        r = round(val_g)
+        if abs(val_g - r) < 0.01:
+            # If number is rounded off to integer, display it as an integer
+            val_s = f"{r:d}"
+        else:
+            # Otherwise display with a decimal.
+            val_s = f"{val_g:.1f}"
+
+        return f"{prefix}: {val_s} g ({energy_kcal:.2f} kcal)"
 
     def protein_string(self):
         return self._energy_string(self.protein_gram, "protein", "Protein")
