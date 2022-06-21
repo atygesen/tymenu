@@ -6,12 +6,22 @@ from wtforms.validators import DataRequired, ValidationError, Optional
 from flask_pagedown.fields import PageDownField
 from flask_login import current_user
 from tymenu.models import Recipe, KcalType
+from markupsafe import Markup
+import emoji
+
+
+def _make_label(text, is_required=True):
+    # Add a star emoji if this field is required.
+    star = emoji.emojize("<sup>:star2:</sup>", language="alias", variant="emoji_type")
+    if is_required:
+        text = f"{text} {star}"
+    return Markup(text)
 
 
 class RecipeForm(FlaskForm):
-    title = StringField("Title:", validators=[DataRequired()])
+    title = StringField(_make_label("Title:"), validators=[DataRequired()])
     background = PageDownField("Background:", validators=[Optional(strip_whitespace=True)])
-    servings = IntegerField("Number of servings:", validators=[DataRequired()])
+    servings = IntegerField(_make_label("Number of servings:"), validators=[DataRequired()])
     kcal_type = SelectField(
         "Kcal type:",
         choices=[
@@ -24,9 +34,9 @@ class RecipeForm(FlaskForm):
     protein_gram = FloatField("Protein (g):", validators=[Optional(strip_whitespace=True)])
     carb_gram = FloatField("Carbs (g):", validators=[Optional(strip_whitespace=True)])
     fat_gram = FloatField("Fat (g):", validators=[Optional(strip_whitespace=True)])
-    ingredients = PageDownField("Ingredients:", validators=[DataRequired()])
-    instructions = PageDownField("Instructions:", validators=[DataRequired()])
-    keywords = StringField("Keywords:", validators=[DataRequired()])
+    ingredients = PageDownField(_make_label("Ingredients:"), validators=[DataRequired()])
+    instructions = PageDownField(_make_label("Instructions:"), validators=[DataRequired()])
+    keywords = StringField(_make_label("Keywords:"), validators=[DataRequired()])
     source = StringField("Source:")
     submit = SubmitField("Submit")
     cancel = SubmitField(label="Cancel", render_kw={"formnovalidate": True})
