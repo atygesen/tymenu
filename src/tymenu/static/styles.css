@@ -77,3 +77,9 @@ div.recipe-thumbnail {
     position: relative;
     float: right;
 }
+
+#recipe_img {
+    float: right;
+    max-height: 250px;
+    max-width: 250px;
+}
