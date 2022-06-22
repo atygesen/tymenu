@@ -27,7 +27,10 @@
                 {% if recipe.kcal_pers %}
                 <p>{{ '%d'|format(recipe.kcal_pers|int) }} kcal per person</p>
                 {% endif %}
-                {{ recipe.short_ingredients_list(nmax=recipes_list_max) | safe }}
+                {% if recipe.cooking_time_min %}
+                <p>Cooking time: {{ recipe.cooking_time_hh_mm_ss() }}</p>
+                {% endif %}
+                <!-- {{ recipe.short_ingredients_list(nmax=recipes_list_max) | safe }} -->
             </div>
             <div class="recipe-date"> {{ moment(recipe.timestamp).fromNow() }}</div>
         </div>
