@@ -59,7 +59,16 @@ def _do_upload_file(file: FileStorage) -> Optional[ImageUrlData]:
 
     if res.status_code != 200:
         # Something happened
-        flash("An error occured during upload.")
+        # Try to fetch the error message
+        json_response: dict = res.json()
+        error = json_response.get("error", None)
+        if isinstance(error, dict):
+            # Recover the error message
+            msg = error.get("message", "")
+            flash(f"An error occured during upload: {msg}")
+        else:
+            # Something else happened... ?
+            flash("An error occured during upload.")
         return None
     flash("Image was uploaded.")
 
