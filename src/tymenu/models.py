@@ -111,7 +111,7 @@ class Recipe(db.Model):
     instructions: str = db.Column(db.Text)
     background: str = db.Column(db.Text, nullable=True)
     keywords: str = db.Column(db.Text)
-    source: str = db.Column(db.String(64))
+    source: str = db.Column(db.Text)
     servings: int = db.Column(db.Integer)
     kcal: float = db.Column(db.Float, nullable=True)
     kcal_type: int = db.Column(db.Integer)  # are kcal measured in per person or in total
