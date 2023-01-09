@@ -55,10 +55,8 @@ def _do_upload_file(file: FileStorage) -> Optional[ImageUrlData]:
     }
     res = requests.post(url, payload, allow_redirects=False)
 
-    logger.info("Retrieved payload: %s. As JSON: %s", res, res.json())
-
     if res.status_code != 200:
-        logger.error("Status code '%s', will not upload. Payload: %s", res.status_code, res.json())
+        logger.error("Status code '%s', will not upload. Content: %s", res.status_code, res.content)
         # Something happened
         # Try to fetch the error message
         json_response: dict = res.json()
@@ -71,6 +69,9 @@ def _do_upload_file(file: FileStorage) -> Optional[ImageUrlData]:
             # Something else happened... ?
             flash("An error occured during upload.")
         return None
+    else:
+        logger.info("Retrieved payload: %s. As JSON: %s", res, res.json())
+
     flash("Image was uploaded.")
 
     # Retrieve the display URL
