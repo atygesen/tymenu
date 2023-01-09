@@ -53,7 +53,7 @@ def _do_upload_file(file: FileStorage) -> Optional[ImageUrlData]:
         "key": api_key,
         "image": encoded,
     }
-    res = requests.post(url, payload)
+    res = requests.post(url, payload, allow_redirects=False)
 
     logger.info("Retrieved payload: %s. As JSON: %s", res, res.json())
 
