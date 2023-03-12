@@ -7,6 +7,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_pagedown import PageDown
 from flask_mail import Mail
+from flask_datepicker import datepicker
 
 __all__ = ["get_db", "get_login_manager", "get_plugins", "init_plugins"]
 
@@ -19,6 +20,7 @@ _RESOURCES = {
     "login_manager": LoginManager(),
     "pagedown": PageDown(),
     "mail": Mail(),
+    "datepicker": datepicker(),
 }
 _RESOURCES["login_manager"].login_view = "auth.login"
 

@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block title %}TyMenu - Menu Plan{% endblock %}
+
+{% block page_content %}
+<a href="{{url_for('.new_plan') }}">
+    <span class="label label-primary">New Menu Plan</span>
+</a>
+
+{% if plans %}
+<h2>Existing plans:</h2>
+<ul>
+    {% for plan in plans %}
+    <li>
+        <a href="{{url_for('.view_plan', plan_id=plan.id)}}">{{ plan.title }} </a>
+    </li>
+    {% endfor %}
+</ul>
+
+
+{% endif %}
+
+
+{% endblock %}

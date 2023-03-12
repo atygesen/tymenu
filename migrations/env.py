@@ -73,13 +73,14 @@ def run_migrations_online():
     connectable = current_app.extensions["migrate"].db.get_engine()
 
     with connectable.connect() as connection:
-        context.configure(
+        config_kwargs = dict(
             connection=connection,
             target_metadata=target_metadata,
             process_revision_directives=process_revision_directives,
             compare_type=True,
-            **current_app.extensions["migrate"].configure_args,
         )
+        config_kwargs.update(current_app.extensions["migrate"].configure_args)
+        context.configure(**config_kwargs)
 
         with context.begin_transaction():
             context.run_migrations()

@@ -1,4 +1,4 @@
-FROM python:3.11-slim-bullseye
+FROM python:3.9-slim-bullseye
 
 WORKDIR /app
 
@@ -19,4 +19,6 @@ COPY . /app
 
 RUN pip install --no-cache-dir -e .
 
-CMD ["flask", "run", "--host", "0.0.0.0"]
+RUN chmod u+x ./entrypoint.sh
+
+ENTRYPOINT [ "./entrypoint.sh" ]

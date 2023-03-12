@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block title %}TyMenu - Menu Plan{% endblock %}
+
+{% block page_content %}
+
+<div class="page-header">
+    <h1>Menu Plan: {{ plan.title }}</h1>
+
+    {% if plan.description_html %}
+    <div>
+        <h2>Description</h2>
+        {{ plan.description_html | safe }}
+    </div>
+    {% endif %}
+
+    <div>
+        Date added: {{ plan.date_added }}<br>
+        Number of recipes in plan: {{ plan.recipe_plans|length }}<br>
+        <a href="{{ url_for('.add_recipe_to_template', plan_id=plan.id) }}">Add recipe</a>
+    </div>
+</div>
+
+
+{% if plan.recipe_plans %}
+<div>
+    <h3>Recipe list:</h3>
+    <div>
+        <ul>
+            {% for entry in plan.get_sorted_plans() %}
+            <li>Day: {{entry.day}}, recipe: {{ entry.recipe.title }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endif %}
+
+<div>
+    {% if current_user.is_administrator() %}
+    <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('.delete_plan', plan_id=plan.id) }}"
+        onclick="return confirm('Are you sure you want to delete this plan? This action cannot be undone.');">
+        <span class="label label-danger">Delete</span>
+    </a>
+    {% endif %}
+</div>
+{% endblock %}

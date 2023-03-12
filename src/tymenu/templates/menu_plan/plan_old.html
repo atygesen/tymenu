@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block title %}TyMenu - Menu Plan{% endblock %}
+
+{% block page_content %}
+
+<div>
+    {{ wtf.quick_form(form) }}
+</div>
+
+{% if items %}
+<div class="page-header">
+    <h1> Week Plan - {{ date }} </h1>
+</div>
+
+<div class="plan-body">
+    {% for pick_date, weekday, results in items %}
+    <li class="plan-entry">
+        <div>
+            <h4>{{ weekday }}, {{ pick_date }}</h4>
+        </div>
+        {% if results %}
+            <div>
+            <ul class="plan-item-entry">
+            {% for item in results %}
+
+                <li>
+                <a class="menu-redirect" href="{{ url_for('menu.view_recipe', recipe_id=item.recipe.id) }}">
+                    {{ item.recipe.title }}
+                </a>
+                </li>
+                {% if item.note %}
+                    <ul class="plan-item-note-entry">
+                        <li> {{ item.note }} </li>
+                    </ul>
+                {% endif %}
+
+            {% endfor %}
+            </ul>
+            </div>
+        {% else %}
+        Empty
+        {% endif %}
+    </li>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block title %}TyMenu - Add to Plan{% endblock %}
+
+{% block page_content %}
+<div class="page-header">
+    <h2>Add '{{ recipe.title }}' to Menu Plan</h2>
+</div>
+
+<div>
+    {{ wtf.quick_form(form) }}
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+{{ pagedown.include_pagedown() }}
+{% endblock %}

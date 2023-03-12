@@ -1,27 +1,19 @@
 from typing import Dict, Any
 from datetime import datetime
 from flask_wtf import FlaskForm
-from wtforms import SubmitField, StringField, IntegerField, FloatField, SelectField
-from wtforms.validators import DataRequired, ValidationError, Optional
+from wtforms import SubmitField, StringField, IntegerField, FloatField, SelectField, DateField
+from wtforms.validators import DataRequired, ValidationError, Optional, NumberRange, InputRequired
 from flask_pagedown.fields import PageDownField
 from flask_login import current_user
 from tymenu.models import Recipe, KcalType
-from markupsafe import Markup
-import emoji
-
-
-def _make_label(text, is_required=True):
-    # Add a star emoji if this field is required.
-    star = emoji.emojize("<sup>:star2:</sup>", language="alias", variant="emoji_type")
-    if is_required:
-        text = f"{text} {star}"
-    return Markup(text)
+from tymenu.utils import label_is_required
+from tymenu.timestamp import get_now_utc
 
 
 class RecipeForm(FlaskForm):
-    title = StringField(_make_label("Title:"), validators=[DataRequired()])
+    title = StringField(label_is_required("Title:"), validators=[DataRequired()])
     background = PageDownField("Background:", validators=[Optional(strip_whitespace=True)])
-    servings = IntegerField(_make_label("Number of servings:"), validators=[DataRequired()])
+    servings = IntegerField(label_is_required("Number of servings:"), validators=[DataRequired()])
     kcal_type = SelectField(
         "Kcal type:",
         choices=[
@@ -38,9 +30,9 @@ class RecipeForm(FlaskForm):
         "Cooking time (minutes):", validators=[Optional(strip_whitespace=True)]
     )
 
-    ingredients = PageDownField(_make_label("Ingredients:"), validators=[DataRequired()])
-    instructions = PageDownField(_make_label("Instructions:"), validators=[DataRequired()])
-    keywords = StringField(_make_label("Keywords:"), validators=[DataRequired()])
+    ingredients = PageDownField(label_is_required("Ingredients:"), validators=[DataRequired()])
+    instructions = PageDownField(label_is_required("Instructions:"), validators=[DataRequired()])
+    keywords = StringField(label_is_required("Keywords:"), validators=[DataRequired()])
     source = StringField("Source:")
     submit = SubmitField("Submit")
     cancel = SubmitField(label="Cancel", render_kw={"formnovalidate": True})
@@ -79,7 +71,6 @@ class RecipeForm(FlaskForm):
             kwargs[field] = getattr(self, field).data
         if author:
             kwargs.update(author=current_user._get_current_object())
-        print("FORM", kwargs)
         return kwargs
 
     def construct_new_recipe(self) -> Recipe:
@@ -90,7 +81,7 @@ class RecipeForm(FlaskForm):
         kwargs = self.construct_recipe_kwargs(author=False)
         for key, value in kwargs.items():
             setattr(recipe, key, value)
-        recipe.last_updated = datetime.utcnow()
+        recipe.last_updated = get_now_utc()
 
     def fill_from_existing_recipe(self, recipe: Recipe):
         """Fill fields from an existing recipe"""
@@ -115,3 +106,15 @@ class EditRecipeForm(RecipeForm):
 class SimpleSearch(FlaskForm):
     search_string = StringField("Search:")
     submit = SubmitField("Submit")
+
+
+class PlannerAdder(FlaskForm):
+    entrydate = DateField(
+        "Date:", format="%Y-%m-%d", default=datetime.today, validators=[DataRequired()]
+    )
+    leftovers = IntegerField(
+        "Leftovers:", default=0, validators=[InputRequired(), NumberRange(min=0)]
+    )
+    note = PageDownField("Note:")
+    submit = SubmitField("Submit")
+    cancel = SubmitField(label="Cancel", render_kw={"formnovalidate": True})
