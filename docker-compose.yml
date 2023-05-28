@@ -1,0 +1,32 @@
+version: "3"
+services:
+  db:
+    container_name: mydb
+    image: mysql:8
+    ports:
+      - 32001:3306
+    # volumes:
+    #   - ./db:/docker-entrypoint-initdb.d/:ro
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=tymenu
+      - MYSQL_ALLOW_EMPTY_PASSWORD=yes
+      - MYSQL_USER=user
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      timeout: 20s
+      retries: 10
+  app:
+    container_name: tymenu
+    links:
+      - db
+    build: .
+    ports:
+      - 8000:5000
+    environment:
+      - FLASK_DEBUG=1
+    volumes:
+      - .:/app
+    depends_on:
+      db:
+        condition: service_healthy

@@ -7,7 +7,7 @@ from . import main_blueprint as main
 def index():
     page = request.args.get("page", 1, type=int)
     pagination = Recipe.query.order_by(Recipe.timestamp.desc()).paginate(
-        page,
+        page=page,
         per_page=current_app.config["TYMENU_RECIPES_PER_PAGE"],
         error_out=False,
     )
@@ -19,7 +19,7 @@ def index():
 def users():
     page = request.args.get("page", 1, type=int)
     pagination = User.query.order_by(User.id.asc()).paginate(
-        page,
+        page=page,
         per_page=current_app.config["TYMENU_USERS_PER_PAGE"],
         error_out=False,
     )
@@ -32,7 +32,7 @@ def profile(id):
     user = User.query.get_or_404(id)
     page = request.args.get("page", 1, type=int)
     pagination = user.recipes.order_by(Recipe.timestamp.desc()).paginate(
-        page,
+        page=page,
         per_page=5,
         error_out=False,
     )
