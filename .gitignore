@@ -137,3 +137,5 @@ poetry.lock
 
 # custom scripts
 import_pyanywhere_db.sh
+
+backups/*.sql
