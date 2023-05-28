@@ -186,7 +186,7 @@ def search_results():
     if search_string is not None:
         query = Recipe.search_string(search_string).order_by(Recipe.timestamp.desc())
         pagination = query.paginate(
-            page,
+            page=page,
             per_page=current_app.config["TYMENU_RECIPES_PER_PAGE"],
             error_out=False,
         )
