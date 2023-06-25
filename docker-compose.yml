@@ -6,7 +6,8 @@ services:
     ports:
       - 32001:3306
     volumes:
-      - ./backups:/backups
+      - ./backups:/backups:ro
+      - tymenu_mysql:/var/lib/mysql
     environment:
       - MYSQL_ROOT_PASSWORD=root
       - MYSQL_DATABASE=tymenu
@@ -30,3 +31,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
+
+volumes:
+  tymenu_mysql:
