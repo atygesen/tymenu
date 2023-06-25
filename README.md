@@ -8,7 +8,7 @@ The Tygesen Menu system, built in flask.
 Development is done in a Docker container. To start a new container, simply:
 
 ```sh
-sudo docker-compose up --build
+sudo docker compose up --build
 ```
 and then connect to
 ```
