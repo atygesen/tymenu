@@ -27,7 +27,8 @@ services:
     environment:
       - FLASK_DEBUG=1
     volumes:
-      - .:/app
+      - ./src/:/app/src:ro
+      - ./app.py:/app/app.py:ro
     depends_on:
       db:
         condition: service_healthy
