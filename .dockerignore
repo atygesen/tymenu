@@ -1,0 +1,11 @@
+__pycache__/
+*.py[cod]
+
+.pytest_cache
+build/
+dist/
+.mypy_cache/
+.vscode
+.gitignore
+
+backups/
