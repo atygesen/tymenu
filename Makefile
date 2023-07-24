@@ -1,23 +1,28 @@
-
-docker-up:
+up:
 	docker compose up \
 		--detach
 
-docker-stop:
+up-build:
+	docker compose up \
+		--detach \
+		--build
+
+stop:
 	docker compose stop
 
-docker-down:
+down:
 	docker compose down \
 		--remove-orphans
 
-docker-down-clean:
+down-clean:
 	docker compose down \
 		--remove-orphans \
 		--volumes
 
 
 .PHONY: \
-	docker-up \
-	docker-stop \
-	docker-down \
-	docker-down-clean
+	up \
+	stop \
+	down \
+	up-build \
+	down-clean

@@ -1,4 +1,4 @@
-version: "3"
+version: "3.8"
 services:
   db:
     container_name: tymenu_mysql
@@ -26,6 +26,7 @@ services:
       - 8000:5000
     environment:
       - FLASK_DEBUG=1
+      - IS_CONTAINER=1
     volumes:
       - ./src/:/app/src:ro
       - ./app.py:/app/app.py:ro

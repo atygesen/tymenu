@@ -8,6 +8,15 @@ basedir = str(Path(".").resolve())
 load_dotenv()  # take environment variables from .env.
 
 
+# Allow for different connection URI depending on whether we are within
+# the docker container or outside.
+# i.e. if the app is launched with the docker-compose.yml
+if os.environ.get("IS_CONTAINER", False) and "DEV_DATABASE_URL_DOCKER" in os.environ:
+    DEV_URL_KEY = "DEV_DATABASE_URL_DOCKER"
+else:
+    DEV_URL_KEY = "DEV_DATABASE_URL"
+
+
 class Config:
     SECRET_KEY = os.environ.get("SECRET_KEY") or "unpiloted-flashcard-reuse-swoop"
     TYMENU_ADMIN = os.environ.get("TYMENU_ADMIN")
@@ -38,7 +47,7 @@ class Config:
 
 class DevelopmentConfig(Config):
     DEBUG = True
-    SQLALCHEMY_DATABASE_URI = os.environ.get("DEV_DATABASE_URL") or "sqlite:///" + os.path.join(
+    SQLALCHEMY_DATABASE_URI = os.environ.get(DEV_URL_KEY) or "sqlite:///" + os.path.join(
         basedir, "data-dev.sqlite"
     )
 
@@ -55,7 +64,6 @@ class ProductionConfig(Config):
 
 
 def get_config(config_name: str) -> Config:
-
     all_configs = {
         "development": DevelopmentConfig,
         "testing": TestingConfig,
