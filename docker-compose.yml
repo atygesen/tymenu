@@ -29,6 +29,7 @@ services:
     volumes:
       - ./src/:/app/src:ro
       - ./app.py:/app/app.py:ro
+      - ./backups/:/app/backups:ro
     depends_on:
       db:
         condition: service_healthy
