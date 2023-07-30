@@ -1,21 +1,22 @@
 from __future__ import annotations
-import enum
-from typing import List, Dict, Optional
+
 import datetime
+import enum
 import hashlib
-import jwt
-from flask import request, current_app
-from werkzeug.security import generate_password_hash, check_password_hash
-from flask_login import UserMixin, AnonymousUserMixin
+
+from flask import current_app, request
+from flask_login import AnonymousUserMixin, UserMixin
 from flask_sqlalchemy.model import DefaultMeta
+import jwt
 import sqlalchemy as sql
-from sqlalchemy.orm import relationship, Mapped
+from sqlalchemy.orm import Mapped, relationship
+from werkzeug.security import check_password_hash, generate_password_hash
 
 from tymenu.timestamp import get_now_utc
 from tymenu.utils import clean_markdown_to_html
 
-from .search import query_substrings, get_operation
 from .resources import get_db, get_login_manager
+from .search import get_operation, query_substrings
 
 
 @enum.unique
@@ -102,7 +103,7 @@ class Recipe(BaseModel):
         return f"<Recipe {self.title!r} by {self.author!r}>"
 
     @property
-    def kcal_pers(self) -> Optional[float]:
+    def kcal_pers(self) -> float | None:
         if self.kcal is None:
             return None
         if self.kcal_type == KcalType.PER_PERSON:
@@ -141,7 +142,7 @@ class Recipe(BaseModel):
         return _timedelta_to_hh_mm(delta)
 
     @property
-    def kcal_total(self) -> Optional[float]:
+    def kcal_total(self) -> float | None:
         if self.kcal is None:
             return None
         if self.kcal_type == KcalType.TOTAL:
@@ -232,7 +233,7 @@ class Role(BaseModel):
             self.permissions = 0
 
     @staticmethod
-    def all_role_permissions() -> Dict[str, List[Permission]]:
+    def all_role_permissions() -> dict[str, list[Permission]]:
         return {
             "User": [Permission.FOLLOW, Permission.COMMENT, Permission.WRITE],
             "Moderator": [

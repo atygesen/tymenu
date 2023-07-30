@@ -1,7 +1,10 @@
+from __future__ import annotations
+
 from datetime import datetime
-from flask_wtf import FlaskForm
+
 from flask_pagedown.fields import PageDownField
-from wtforms.fields import DateField, SubmitField, SelectField, StringField, IntegerField
+from flask_wtf import FlaskForm
+from wtforms.fields import DateField, IntegerField, SelectField, StringField, SubmitField
 from wtforms.validators import DataRequired, InputRequired
 
 from tymenu.utils import label_is_required

@@ -1,19 +1,21 @@
-from typing import NamedTuple, Optional
+from __future__ import annotations
+
 import base64
-import requests
-import tempfile
 import logging
-from flask import redirect, url_for, render_template, flash, request, current_app
-from flask_login import current_user
+import tempfile
+from typing import NamedTuple
+
+from flask import current_app, flash, redirect, render_template, request, url_for
+import requests
 from sqlalchemy.exc import IntegrityError
 from werkzeug.datastructures import FileStorage
+
+from tymenu.decorators import login_required, mod_required
 from tymenu.models import Recipe
 from tymenu.resources import get_db
-from tymenu.decorators import mod_required, login_required
-from .blueprint import menu_blueprint as menu
-from .forms import RecipeForm, SimpleSearch, EditRecipeForm
 
-from . import forms
+from .blueprint import menu_blueprint as menu
+from .forms import EditRecipeForm, RecipeForm, SimpleSearch
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +37,7 @@ def redirect_recipe(recipe_id: int):
     return redirect(url_for("menu.view_recipe", recipe_id=recipe_id))
 
 
-def _do_upload_file(file: FileStorage) -> Optional[ImageUrlData]:
+def _do_upload_file(file: FileStorage) -> ImageUrlData | None:
     """Upload the image file to img BB"""
     config = current_app._get_current_object().config
     api_key = config["IMGBB_API_KEY"]

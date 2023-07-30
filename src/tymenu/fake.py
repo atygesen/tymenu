@@ -1,8 +1,12 @@
+from __future__ import annotations
+
 from random import randint
-from sqlalchemy.exc import IntegrityError
+
 from faker import Faker
+from sqlalchemy.exc import IntegrityError
+
+from .models import Recipe, User
 from .resources import get_db
-from .models import User, Recipe
 
 
 def users(count=100):

@@ -1,6 +1,10 @@
+from __future__ import annotations
+
 from threading import Thread
+
 from flask import current_app, render_template
 from flask_mail import Message
+
 from tymenu.resources import get_mail
 
 

@@ -1,4 +1,5 @@
-from flask import current_app
+from __future__ import annotations
+
 import pytest
 from tymenu import create_app
 from tymenu.resources import get_db

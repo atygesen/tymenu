@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, SubmitField
-from wtforms.validators import DataRequired, Length, Email, EqualTo
-from wtforms import ValidationError
+from wtforms import BooleanField, PasswordField, StringField, SubmitField, ValidationError
+from wtforms.validators import DataRequired, Email, EqualTo, Length
+
 from tymenu.models import User
 
 

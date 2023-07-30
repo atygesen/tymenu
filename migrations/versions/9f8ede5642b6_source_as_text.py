@@ -5,6 +5,8 @@ Revises: 777ce7844aa3
 Create Date: 2022-09-19 12:13:30.699059
 
 """
+from __future__ import annotations
+
 from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import mysql

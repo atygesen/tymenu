@@ -1,7 +1,9 @@
-import emoji
-from markupsafe import Markup
-from markdown import markdown
+from __future__ import annotations
+
 import bleach
+import emoji
+from markdown import markdown
+from markupsafe import Markup
 
 
 def label_is_required(text, is_required=True):

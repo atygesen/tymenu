@@ -1,12 +1,12 @@
 """The main app constructor"""
+from __future__ import annotations
 
-from flask import Flask
 import logging
 
+from flask import Flask
 
 from .config import get_config
 from .resources import init_plugins
-
 
 logger = logging.getLogger(__name__)
 
@@ -23,8 +23,8 @@ def create_app(config_name: str) -> Flask:
     init_plugins(app)
 
     # Blueprints
-    from .main import main_blueprint
     from .auth import auth_blueprint
+    from .main import main_blueprint
     from .menu import menu_blueprint
     from .plan import plan_blueprint
 

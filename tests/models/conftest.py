@@ -1,6 +1,7 @@
-import pytest
+from __future__ import annotations
 
-from tymenu.models import User, Role
+import pytest
+from tymenu.models import Role, User
 
 
 @pytest.fixture

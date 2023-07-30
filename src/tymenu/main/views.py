@@ -1,5 +1,9 @@
-from flask import render_template, request, current_app
+from __future__ import annotations
+
+from flask import current_app, render_template, request
+
 from tymenu.models import Recipe, User
+
 from . import main_blueprint as main
 
 

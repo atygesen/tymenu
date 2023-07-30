@@ -1,13 +1,17 @@
-from typing import Dict, Any
+from __future__ import annotations
+
 from datetime import datetime
-from flask_wtf import FlaskForm
-from wtforms import SubmitField, StringField, IntegerField, FloatField, SelectField, DateField
-from wtforms.validators import DataRequired, ValidationError, Optional, NumberRange, InputRequired
-from flask_pagedown.fields import PageDownField
+from typing import Any
+
 from flask_login import current_user
-from tymenu.models import Recipe, KcalType
-from tymenu.utils import label_is_required
+from flask_pagedown.fields import PageDownField
+from flask_wtf import FlaskForm
+from wtforms import DateField, FloatField, IntegerField, SelectField, StringField, SubmitField
+from wtforms.validators import DataRequired, InputRequired, NumberRange, Optional, ValidationError
+
+from tymenu.models import KcalType, Recipe
 from tymenu.timestamp import get_now_utc
+from tymenu.utils import label_is_required
 
 
 class RecipeForm(FlaskForm):
@@ -65,7 +69,7 @@ class RecipeForm(FlaskForm):
     def _recipe_matches_title(self, recipe: Recipe, title: str) -> bool:
         return recipe.title == title
 
-    def construct_recipe_kwargs(self, author=True) -> Dict[str, Any]:
+    def construct_recipe_kwargs(self, author=True) -> dict[str, Any]:
         kwargs = {}
         for field in self.all_data_field_names():
             kwargs[field] = getattr(self, field).data

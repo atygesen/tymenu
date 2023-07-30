@@ -1,10 +1,13 @@
-import os
+from __future__ import annotations
+
 import logging
-from sqlalchemy import text
+import os
+
 from flask_migrate import Migrate
+from sqlalchemy import text
 from tymenu.factory import create_app
-from tymenu.resources import get_db
 from tymenu.models import Role
+from tymenu.resources import get_db
 
 logger = logging.getLogger(__name__)
 

@@ -1,11 +1,13 @@
+from __future__ import annotations
+
 import logging
 
-from flask import render_template, url_for, redirect, flash
+from flask import flash, redirect, render_template, url_for
 from flask_login import current_user
 
-from tymenu.models import MenuPlan, Recipe, MenuPlanItem
-from tymenu.resources import get_db
 from tymenu.decorators import admin_required, mod_required
+from tymenu.models import MenuPlan, MenuPlanItem, Recipe
+from tymenu.resources import get_db
 
 from .blueprint import plan_blueprint as planner
 from .forms import NewMenuPlanForm, RecipeMenuPlanForm

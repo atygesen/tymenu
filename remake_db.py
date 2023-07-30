@@ -1,6 +1,9 @@
+from __future__ import annotations
+
 import os
-from tymenu.models import Role
+
 from tymenu.factory import create_app
+from tymenu.models import Role
 from tymenu.resources import get_db
 
 if __name__ == "__main__":

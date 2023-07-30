@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 import datetime
+
 import pytest
 from sqlalchemy import or_
 from tymenu.models import Recipe

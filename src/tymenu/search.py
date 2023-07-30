@@ -1,8 +1,11 @@
-from typing import Union, Any
+from __future__ import annotations
+
+from typing import Any
+
 import sqlalchemy as sql
 
 
-def get_operation(op: Union[str, Any]):
+def get_operation(op: str | Any):
     if isinstance(op, str):
         return get_operation_by_string(op)
     # assume it may be the operation itself, i.e. the sql.or_
