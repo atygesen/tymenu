@@ -26,9 +26,11 @@ def create_app(config_name: str) -> Flask:
     from .main import main_blueprint
     from .auth import auth_blueprint
     from .menu import menu_blueprint
+    from .plan import plan_blueprint
 
     app.register_blueprint(main_blueprint)
     app.register_blueprint(auth_blueprint)
     app.register_blueprint(menu_blueprint)
+    app.register_blueprint(plan_blueprint)
 
     return app

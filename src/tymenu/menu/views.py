@@ -4,14 +4,16 @@ import requests
 import tempfile
 import logging
 from flask import redirect, url_for, render_template, flash, request, current_app
-from flask_login.utils import login_required
+from flask_login import current_user
 from sqlalchemy.exc import IntegrityError
 from werkzeug.datastructures import FileStorage
 from tymenu.models import Recipe
 from tymenu.resources import get_db
-from tymenu.decorators import mod_required
+from tymenu.decorators import mod_required, login_required
 from .blueprint import menu_blueprint as menu
 from .forms import RecipeForm, SimpleSearch, EditRecipeForm
+
+from . import forms
 
 logger = logging.getLogger(__name__)
 
@@ -254,3 +256,39 @@ def delete_recipe(recipe_id):
         flash(f"Recipe '{recipe.title}' was deleted.")
 
     return redirect(url_for("main.index"))
+
+
+# @menu.route("/planner_add/<int:recipe_id>", methods=["GET", "POST"])
+# @login_required
+# @mod_required
+# def add_to_plan(recipe_id):
+#     recipe: Recipe = Recipe.query.get_or_404(recipe_id)
+
+#     form = forms.PlannerAdder()
+
+#     if form.cancel.data:
+#         return redirect(url_for("main.index"))
+
+#     if form.validate_on_submit():
+#         db = get_db()
+
+#         plan_item = MenuPlanItem(
+#             added_by=current_user.id,
+#             recipe_id=recipe.id,
+#             date=form.entrydate.data,
+#             leftovers=form.leftovers.data,
+#             note=form.note.data,
+#         )
+
+#         try:
+#             db.session.add(plan_item)
+#             db.session.commit()
+#         except IntegrityError as exc:
+#             logger.error("An error occurred while adding menu plan item: %s", exc)
+#             db.session.rollback()
+#             flash(f"An error occurred while adding menu plan item: {exc}")
+#         else:
+#             logger.info("Created menu plan with id: %s", plan_item.id)
+#             flash("Added item to menu plan")
+#         return redirect(url_for("main.index"))
+#     return render_template("menu/add_to_plan.html", form=form, recipe=recipe)

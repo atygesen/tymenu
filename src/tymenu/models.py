@@ -1,5 +1,5 @@
 from __future__ import annotations
-from enum import IntEnum, unique
+import enum
 from typing import List, Dict, Optional
 import datetime
 import hashlib
@@ -7,17 +7,19 @@ import jwt
 from flask import request, current_app
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin, AnonymousUserMixin
+from flask_sqlalchemy.model import DefaultMeta
 import sqlalchemy as sql
-from markdown import markdown
-import bleach
-import emoji
+from sqlalchemy.orm import relationship, Mapped
+
+from tymenu.timestamp import get_now_utc
+from tymenu.utils import clean_markdown_to_html
 
 from .search import query_substrings, get_operation
 from .resources import get_db, get_login_manager
 
 
-@unique
-class KcalType(IntEnum):
+@enum.unique
+class KcalType(enum.IntEnum):
     PER_PERSON = 1
     TOTAL = 2
 
@@ -34,62 +36,24 @@ db = get_db()
 login_manager = get_login_manager()
 
 
-def get_secret_key() -> str:
+def _get_secret_key() -> str:
     return current_app.config["SECRET_KEY"]
 
 
 def encode(data: dict, expiration=3600):
     # expiration is a special name
     # https://pyjwt.readthedocs.io/en/latest/usage.html#registered-claim-names
-    data["exp"] = datetime.datetime.now(tz=datetime.timezone.utc) + datetime.timedelta(
-        seconds=expiration
-    )
-    return jwt.encode(data, get_secret_key(), algorithm="HS256")
+    data["exp"] = get_now_utc() + datetime.timedelta(seconds=expiration)
+    return jwt.encode(data, _get_secret_key(), algorithm="HS256")
 
 
 def decode(token, leeway: int = 10):
     return jwt.decode(
         token,
-        get_secret_key(),
+        _get_secret_key(),
         leeway=datetime.timedelta(seconds=leeway),
         algorithms=["HS256"],
     )
-
-
-def emojify_str(s: str) -> str:
-    return emoji.emojize(s, language="alias", variant="emoji_type")
-
-
-def clean_markdown_to_html(value: str, emojify=True) -> str:
-    allowed_tags = [
-        "a",
-        "abbr",
-        "acronym",
-        "b",
-        "blockquote",
-        "code",
-        "em",
-        "i",
-        "li",
-        "ol",
-        "pre",
-        "strong",
-        "ul",
-        "h1",
-        "h2",
-        "h3",
-        "p",
-    ]
-    cleaned = bleach.linkify(
-        bleach.clean(
-            markdown(value, output_format="html"),
-            tags=allowed_tags,
-            strip=True,
-        )
-    )
-    if emojify:
-        cleaned = emojify_str(cleaned)
-    return cleaned
 
 
 # Energy conversion (kcal/g)
@@ -99,12 +63,14 @@ energy_conversion = {
     "carb": 4.06,
 }
 
+BaseModel: DefaultMeta = db.Model
 
-class Recipe(db.Model):
+
+class Recipe(BaseModel):
     __tablename__ = "recipe"
     id: int = db.Column(db.Integer, primary_key=True)
     author_id: int = db.Column(db.Integer, db.ForeignKey("users.id"), index=True)
-    timestamp = db.Column(db.DateTime, index=True, default=datetime.datetime.utcnow)
+    timestamp: datetime.datetime = db.Column(db.DateTime, index=True, default=get_now_utc)
     last_updated = db.Column(db.DateTime)
     title: str = db.Column(db.String(64), unique=True)
     ingredients: str = db.Column(db.Text)
@@ -113,13 +79,13 @@ class Recipe(db.Model):
     keywords: str = db.Column(db.Text)
     source: str = db.Column(db.Text)
     servings: int = db.Column(db.Integer)
-    kcal: float = db.Column(db.Float, nullable=True)
+    kcal: float | None = db.Column(db.Float, nullable=True)
     kcal_type: int = db.Column(db.Integer)  # are kcal measured in per person or in total
     # Breakdown of the kcals
-    protein_gram = db.Column(db.Float, nullable=True)
-    carb_gram = db.Column(db.Float, nullable=True)
-    fat_gram = db.Column(db.Float, nullable=True)
-    cooking_time_min = db.Column(db.Float, nullable=True)
+    protein_gram: float | None = db.Column(db.Float, nullable=True)
+    carb_gram: float | None = db.Column(db.Float, nullable=True)
+    fat_gram: float | None = db.Column(db.Float, nullable=True)
+    cooking_time_min: float | None = db.Column(db.Float, nullable=True)
 
     # Special columns with sanitized HTML from Markdown
     ingredients_html: str = db.Column(db.Text)
@@ -252,7 +218,7 @@ db.event.listen(Recipe.instructions, "set", Recipe.on_changed_instructions)
 db.event.listen(Recipe.background, "set", Recipe.on_changed_background)
 
 
-class Role(db.Model):
+class Role(BaseModel):
     __tablename__ = "roles"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), unique=True)
@@ -338,7 +304,7 @@ class AnonymousUser(AnonymousUserMixin):
 login_manager.anonymous_user = AnonymousUser
 
 
-class User(UserMixin, db.Model):
+class User(UserMixin, BaseModel):
     __tablename__ = "users"
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(64), unique=True, index=True)
@@ -347,7 +313,8 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(128))
     recipes = db.relationship("Recipe", backref="author", lazy="dynamic")
     avatar_hash = db.Column(db.String(32))
-    member_since = db.Column(db.DateTime(), default=datetime.datetime.utcnow)
+    member_since = db.Column(db.DateTime(), default=get_now_utc)
+    # menu_plans = db.relationship("MenuPlanItem", backref="author", lazy="dynamic")
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -470,3 +437,71 @@ def _timedelta_to_hh_mm(delta: datetime.timedelta):
         return f"1 hour, {min_s}"
     # Multuple hours
     return f"{hours} hours, {min_s}"
+
+
+class MenuPlanInstance(BaseModel):
+    __tablename__ = "menu_plan_instance"
+    id = db.Column(db.Integer, primary_key=True)
+    date = db.Column(db.Date, index=True)
+    menu_plan_id = db.Column(db.Integer, db.ForeignKey("menu_plan.id"), index=True)
+    # menu_plan: Mapped[MenuPlan] = relationship(foreign_keys=[menu_plan_id])
+
+    @property
+    def recipe_plans(self) -> list[MenuPlanItem]:
+        return self.menu_plan.get_sorted_plans()
+
+    @property
+    def title(self) -> str:
+        return self.menu_plan.title
+
+
+class MenuPlan(BaseModel):
+    __tablename__ = "menu_plan"
+    id = db.Column(db.Integer, primary_key=True)
+    title: str = db.Column(db.String(255), nullable=False, index=False)
+    description: str = db.Column(db.Text, nullable=True, index=False)
+    added_by_id: Mapped[int] = db.Column(db.Integer, db.ForeignKey("users.id"), index=True)
+    added_by: Mapped[User] = relationship("User")
+    timestamp: datetime.datetime = db.Column(db.DateTime, index=False, default=get_now_utc)
+    recipe_plans: Mapped[list[MenuPlanItem]] = relationship(
+        "MenuPlanItem",
+        cascade="all,delete",
+        backref="menu_plan",
+    )
+    instances: Mapped[list[MenuPlanInstance]] = relationship(
+        "MenuPlanInstance",
+        cascade="all,delete",
+        backref="menu_plan",
+    )
+
+    description_html: str = db.Column(db.Text)
+
+    @classmethod
+    def get_date(cls, date: datetime.date):
+        return cls.query.filter(cls.date == date).all()
+
+    def get_sorted_plans(self) -> list[MenuPlanItem]:
+        plans = self.recipe_plans.copy()
+        plans.sort(key=lambda p: p.day)
+        return plans
+
+    @staticmethod
+    def on_changed_description(target, value, oldvalue, initiator):
+        if value is None:
+            target.description_html = ""
+        target.description_html = clean_markdown_to_html(value)
+
+
+db.event.listen(MenuPlan.description, "set", MenuPlan.on_changed_description)
+
+
+class MenuPlanItem(BaseModel):
+    """Join table for MenuPlan and Recipe"""
+
+    __tablename__ = "menu_plan_recipe"
+    id: int = db.Column(db.Integer, primary_key=True)
+    menu_plan_id: Mapped[int] = db.Column(db.Integer, db.ForeignKey("menu_plan.id"), index=True)
+    recipe_id: Mapped[int] = db.Column(db.Integer, db.ForeignKey("recipe.id"), index=True)
+    day: int = db.Column(db.Integer, nullable=False)  # Number of days offset from day 0
+    days_leftover = db.Column(db.Integer, nullable=False)
+    recipe: Mapped[Recipe] = relationship(foreign_keys=[recipe_id])
