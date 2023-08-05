@@ -14,8 +14,14 @@
         Number of recipes: {{ user.recipes.count() }}
     </div>
     {% if current_user.is_administrator() %}
-        <p><a href="mailto:{{ user.email }}">{{ user.email }}</a></p>
+    <p><a href="mailto:{{ user.email }}">{{ user.email }}</a></p>
     {% endif %}
+    {% if user.is_current_user %}
+    <div>
+        <a href="{{ url_for('main.change_username', id=user.id) }}">Change Username</a>
+    </div>
+    {% endif %}
+
 </div>
 
 <div class="pagination">

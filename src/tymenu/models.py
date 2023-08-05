@@ -5,7 +5,7 @@ import enum
 import hashlib
 
 from flask import current_app, request
-from flask_login import AnonymousUserMixin, UserMixin
+from flask_login import AnonymousUserMixin, UserMixin, current_user
 from flask_sqlalchemy.model import DefaultMeta
 import jwt
 import sqlalchemy as sql
@@ -413,6 +413,11 @@ class User(UserMixin, BaseModel):
                 db.session.commit()
                 return
         raise RuntimeError(f"Unknown role: {role_name}. Available roles: {all_roles!r}")
+
+    @property
+    def is_current_user(self) -> bool:
+        """Is this user is the current logged in user?"""
+        return self.id == current_user.id
 
 
 @login_manager.user_loader
